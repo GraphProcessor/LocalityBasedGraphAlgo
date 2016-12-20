@@ -1,3 +1,10 @@
+#clion files
+.idea
+cmake-build-debug
+
+#datasets
+datasets
+
 # Compiled Object files
 *.slo
 *.lo
