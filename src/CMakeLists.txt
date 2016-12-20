@@ -18,7 +18,7 @@ set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_
         parallel_utils/thread_pool_breakable.h parallel_utils/thread_pool_base.h)
 set(GraphIOUtilFiles input_output_handler.h)
 set(DemonFiles test_demon.cpp algorithm/demon_algorithm.cpp algorithm/demon_algorithm.h)
-set(CISFiles test_cis.cpp algorithm/cis_algorithm.cpp algorithm/cis_algorithm.h)
+set(CISFiles test_cis.cpp algorithm/cis_algorithm.cpp algorithm/cis_algorithm.h algorithm/cis_sequential_algorithm.cpp algorithm/cis_sequential_algorithm.h)
 
 add_executable(DemonAlgo ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles})
 target_link_libraries(DemonAlgo ${CMAKE_THREAD_LIBS_INIT})

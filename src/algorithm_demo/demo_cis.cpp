@@ -2,10 +2,9 @@
 // Created by cheyulin on 10/5/16.
 //
 
-#include "algorithm/cis_algorithm.h"
-#include "parallel_utils/dataflow_scheduler.h"
+#include "algorithm/cis_sequential_algorithm.h"
 #include "input_output_handler.h"
-
+#include "util/pretty_print.h"
 using namespace yche;
 
 template<typename VertexIndexType>
@@ -53,8 +52,11 @@ int main(int argc, char *argv[]) {
 
     ConstructGraphWithEdgeVecForCIS<VertexIndexType>(graph_ptr, name_vertex_map, index_name_map, edges_vec);
 
-    auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0);
-    ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, cis_ptr, index_name_map);
+    auto cis = Cis(graph_ptr, 0);
+    cis.ExecuteCis();
+    cout << cis.overlap_community_vec_ << endl;
+//    auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0);
+//    ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, cis_ptr, index_name_map);
 
     return 0;
 }

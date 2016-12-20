@@ -12,6 +12,8 @@
 #include <map>
 #include <vector>
 
+#include "parallel_utils/dataflow_scheduler.h"
+#include "parallel_utils/reduce_scheduler.h"
 namespace yche {
     using namespace std;
 
