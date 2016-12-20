@@ -30,4 +30,4 @@ target_link_libraries(CISAlgo ${Boost_LIBRARIES})
 
 add_subdirectory(test)
 add_subdirectory(evaluation_metrics)
-add_subdirectory(demo)
+add_subdirectory(algorithm_demo)

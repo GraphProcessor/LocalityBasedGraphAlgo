@@ -31,8 +31,6 @@ namespace yche {
         remove_member
     };
 
-    struct MemberInfo;
-    using MemberInfoMap = std::unordered_map<IndexType, unique_ptr<MemberInfo>>;
 
     //Cache the Previous Computation Results for a Single Vertex
     struct MemberInfo {
@@ -42,6 +40,8 @@ namespace yche {
 
         MemberInfo(IndexType member_index) : member_index_(member_index), w_in_(0), w_out_(0) {}
     };
+
+    using MemberInfoMap = std::unordered_map<IndexType, unique_ptr<MemberInfo>>;
 
     //Cache the Previous Computation Results for a Community
     struct CommunityInfo {
