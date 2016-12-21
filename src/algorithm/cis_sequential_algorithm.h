@@ -19,8 +19,8 @@ using namespace boost;
 
 namespace yche {
     constexpr double DOUBLE_ACCURACY = 0.00001;
-    using MemberSet = std::unordered_set<int>;
-    using MemberVec = std::vector<int>;
+    using MemberIdxSet = std::unordered_set<int>;
+    using MemberIdxVec = std::vector<int>;
 
     struct Member {
         int member_index_;
@@ -30,7 +30,7 @@ namespace yche {
         Member(int member_index) : member_index_(member_index), w_in_(0), w_out_(0) {}
     };
 
-    using MemberMap = std::unordered_map<int, Member>;
+    using MemberDict = std::unordered_map<int, Member>;
 
     enum class MutationType {
         add_neighbor,
@@ -43,8 +43,6 @@ namespace yche {
         double w_out_;
 
         Community() : w_in_(0), w_out_(0) {}
-
-        Community(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) {}
 
         Community(const Community &community) = default;
 
@@ -78,7 +76,7 @@ namespace yche {
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using Edge = graph_traits<Graph>::edge_descriptor;
-        using OverlappingCommunityVec=vector<MemberVec>;
+        using OverlappingCommunityVec=vector<MemberIdxVec>;
 
         OverlappingCommunityVec overlap_community_vec_;
 
@@ -98,35 +96,35 @@ namespace yche {
 
         double CalDensity(Community &community, Member &member, MutationType mutation_type) const;
 
-        void InitializeSeeds(const MemberSet &seed, Community &community, MemberMap &member_dict,
-                             MemberMap &neighbor_dict, MemberSet &to_computed_neighbors,
-                             property_map<Graph, vertex_index_t>::type &vertex_index_map,
+        void InitializeSeeds(const MemberIdxSet &seed, Community &community, MemberDict &member_dict,
+                             MemberDict &neighbor_dict, property_map<Graph, vertex_index_t>::type &vertex_index_map,
                              property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
         void UpdateForAddNeighbor(const Vertex &mutate_vertex, Community &community,
-                                  MemberMap &member_dict, MemberMap &neighbor_dict,
+                                  MemberDict &member_dict, MemberDict &neighbor_dict,
                                   property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                   property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
         void UpdateForRemoveMember(const Vertex &mutate_vertex, Community &community,
-                                   MemberMap &member_dict, MemberMap &neighbor_dict,
+                                   MemberDict &member_dict, MemberDict &neighbor_dict,
                                    property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                    property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        void UpdateStates(const Vertex &mutate_vertex, Community &community,
-                          MemberMap &member_dict, MemberMap &neighbor_dict, MutationType mutation_type,
+        void MutateStates(MutationType mutation_type, vector<Member> to_check_list,
+                          Community &community, MemberDict &expand_member_dict,
+                          MemberDict &shrink_member_dict, auto degree_cmp_obj, bool &change_flag,
                           property_map<Graph, vertex_index_t>::type &vertex_index_map,
                           property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        Community SplitAndChoose(MemberSet &member_set);
+        Community SplitAndChoose(MemberIdxSet &member_set);
 
-        MemberVec ExpandSeed(MemberSet &seed);
+        MemberIdxVec ExpandSeed(MemberIdxSet &seed);
 
-        double GetIntersectRatio(MemberVec &left_community, MemberVec &right_community) const;
+        double GetIntersectRatio(MemberIdxVec &left_community, MemberIdxVec &right_community) const;
 
-        MemberVec GetUnion(MemberVec &left_community, MemberVec &right_community) const;
+        MemberIdxVec GetUnion(MemberIdxVec &left_community, MemberIdxVec &right_community) const;
 
-        void MergeCommToGlobal(MemberVec &community);
+        void MergeCommToGlobal(MemberIdxVec &result_community);
     };
 }
 
