@@ -57,7 +57,6 @@ int main(int argc, char *argv[]) {
     auto cis = Cis(std::move(graph_ptr), 0);
     cis.ExecuteCis();
 
-    cout << cis.overlap_community_vec_.get() << endl;
     for (auto &&community_ptr:*cis.overlap_community_vec_) {
         for (auto member_id:*community_ptr) {
             cout << index_name_map[member_id] << "(" << member_id << "),";
