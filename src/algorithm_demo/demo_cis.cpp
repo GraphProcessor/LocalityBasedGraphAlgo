@@ -5,6 +5,7 @@
 #include "algorithm/cis_sequential_algorithm.h"
 #include "input_output_handler.h"
 #include "util/pretty_print.h"
+
 using namespace yche;
 
 template<typename VertexIndexType>
@@ -38,9 +39,7 @@ void ConstructGraphWithEdgeVecForCIS(unique_ptr<Cis::Graph> &graph_ptr,
 }
 
 int main(int argc, char *argv[]) {
-    std::ios_base::sync_with_stdio(false);
-    long thread_num = 1;
-    char *file_name_ptr = argv[1];
+    auto file_name_ptr = argv[1];
 
     using VertexIndexType =int;
     vector<EdgeInfo<VertexIndexType>> edges_vec;
@@ -55,8 +54,5 @@ int main(int argc, char *argv[]) {
     auto cis = Cis(graph_ptr, 0);
     cis.ExecuteCis();
     cout << cis.overlap_community_vec_ << endl;
-//    auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0);
-//    ExecuteAlgorithmWithParallelizer<Cis, VertexIndexType>(thread_num, cis_ptr, index_name_map);
-
     return 0;
 }

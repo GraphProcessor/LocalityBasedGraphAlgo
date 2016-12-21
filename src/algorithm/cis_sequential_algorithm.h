@@ -22,11 +22,6 @@ namespace yche {
     using MemberSet = std::unordered_set<int>;
     using MemberVec = std::vector<int>;
 
-    enum class MutationType {
-        add_neighbor,
-        remove_member
-    };
-
     struct Member {
         int member_index_;
         double w_in_;
@@ -37,10 +32,17 @@ namespace yche {
 
     using MemberMap = std::unordered_map<int, Member>;
 
+    enum class MutationType {
+        add_neighbor,
+        remove_member
+    };
+
     struct Community {
         std::unordered_set<int> member_indices_;
         double w_in_;
         double w_out_;
+
+        Community() : w_in_(0), w_out_(0) {}
 
         Community(double w_in, double w_out) : w_in_(w_in), w_out_(w_out) {}
 
@@ -76,23 +78,14 @@ namespace yche {
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using Edge = graph_traits<Graph>::edge_descriptor;
-
         using OverlappingCommunityVec=vector<MemberVec>;
-        using BasicDataType = MemberSet;
-        using MergeDataType = MemberVec;
 
         OverlappingCommunityVec overlap_community_vec_;
 
-        [[deprecated("Replaced With Parallel Execution")]]
+        Cis(unique_ptr<Graph> &graph_ptr, double lambda);
+
         OverlappingCommunityVec ExecuteCis();
 
-        Cis(unique_ptr<Graph> &graph_ptr, double lambda) : lambda_(lambda), graph_ptr_(std::move(graph_ptr)) {
-            property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
-            for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
-                Vertex vertex = *vp.first;
-                vertices_.emplace_back(*vp.first);
-            }
-        }
 
     private:
         unique_ptr<Graph> graph_ptr_;
@@ -101,45 +94,40 @@ namespace yche {
 
         double CalDensity(int size, double w_in, double w_out, double lambda) const;
 
-        double CalDensity(Community &community_info_ptr) const;
+        double CalDensity(Community &community) const;
 
-        double CalDensity(Community &community_info_ptr, Member &member_info_ptr, MutationType mutation_type) const;
+        double CalDensity(Community &community, Member &member, MutationType mutation_type) const;
 
-        Community SplitAndChoose(MemberSet &member_set);
-
-        void UpdateIterationStates(const Vertex &mutate_vertex,
-                                   Community &community_info_ptr,
-                                   MemberMap &members,
-                                   MemberMap &neighbors, const MutationType &mutation_type,
-                                   property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                   property_map<Graph, edge_weight_t>::type &edge_weight_map);
-
-        void UpdateForAddNeighbor(const Vertex &mutate_vertex, Community &community_info_ptr,
-                                  MemberMap &members, MemberMap &neighbors,
-                                  property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                  property_map<Graph, edge_weight_t>::type &edge_weight_map);
-
-        void UpdateForRemoveMember(const Vertex &mutate_vertex, Community &community_info_ptr,
-                                   MemberMap &members, MemberMap &neighbors,
-                                   property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                   property_map<Graph, edge_weight_t>::type &edge_weight_map);
-
-
-        void InitializeSeeds(const MemberSet &seed_member_ptr,
-                             Community &community_info_ptr, MemberMap &members,
-                             MemberMap &neighbors, MemberSet &to_computed_neighbors,
+        void InitializeSeeds(const MemberSet &seed, Community &community, MemberMap &member_dict,
+                             MemberMap &neighbor_dict, MemberSet &to_computed_neighbors,
                              property_map<Graph, vertex_index_t>::type &vertex_index_map,
                              property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        MemberVec ExpandSeed(MemberSet &seed_member_ptr);
+        void UpdateForAddNeighbor(const Vertex &mutate_vertex, Community &community,
+                                  MemberMap &member_dict, MemberMap &neighbor_dict,
+                                  property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                  property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        double GetIntersectRatio(MemberVec &left_community, MemberVec &right_community);
+        void UpdateForRemoveMember(const Vertex &mutate_vertex, Community &community,
+                                   MemberMap &member_dict, MemberMap &neighbor_dict,
+                                   property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                   property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        MemberVec MergeBoth(MemberVec &left_community, MemberVec &right_community);
+        void UpdateStates(const Vertex &mutate_vertex, Community &community,
+                          MemberMap &member_dict, MemberMap &neighbor_dict, MutationType mutation_type,
+                          property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                          property_map<Graph, edge_weight_t>::type &edge_weight_map);
 
-        void MergeCommToGlobal(OverlappingCommunityVec &community_collection, MergeDataType &result);
+        Community SplitAndChoose(MemberSet &member_set);
+
+        MemberVec ExpandSeed(MemberSet &seed);
+
+        double GetIntersectRatio(MemberVec &left_community, MemberVec &right_community) const;
+
+        MemberVec GetUnion(MemberVec &left_community, MemberVec &right_community) const;
+
+        void MergeCommToGlobal(MemberVec &community);
     };
 }
-
 
 #endif //CODES_YCHE_CIS_SEQUENTIAL_ALGORITHM_H
