@@ -6,7 +6,6 @@
 #define CODES_YCHE_CIS_SEQUENTIAL_ALGORITHM_H
 
 #include <boost/graph/adjacency_list.hpp>
-#include <functional>
 #include <unordered_set>
 #include <unordered_map>
 #include <queue>
