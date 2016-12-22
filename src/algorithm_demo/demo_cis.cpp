@@ -2,7 +2,7 @@
 // Created by cheyulin on 10/5/16.
 //
 
-#include "algorithm/cis_sequential_algorithm.h"
+#include "algorithm/sequential/cis_sequential_algorithm.h"
 #include "input_output_handler.h"
 #include "util/pretty_print.h"
 
