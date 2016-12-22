@@ -264,7 +264,7 @@ namespace yche {
         auto iter_end = set_intersection(left_community.begin(), left_community.end(),
                                          right_community.begin(), right_community.end(), intersect_set.begin());
         auto intersect_set_size = iter_end - intersect_set.begin();
-        double rate = static_cast<double>(intersect_set.size()) / min(left_community.size(), right_community.size());
+        double rate = static_cast<double>(intersect_set_size) / min(left_community.size(), right_community.size());
         return rate;
     }
 

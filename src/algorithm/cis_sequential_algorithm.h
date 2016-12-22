@@ -14,6 +14,8 @@
 #include <limits>
 #include <iostream>
 
+#include "util/pretty_print.h"
+
 using namespace std;
 using namespace boost;
 
@@ -58,12 +60,12 @@ namespace yche {
 
         void UpdateInfoForMutation(const Entity &member_info, MutationType mutation_type) {
             if (mutation_type == MutationType::add_neighbor) {
-                this->w_in_ += member_info.w_in_;
-                this->w_out_ += member_info.w_out_;
+                w_in_ += member_info.w_in_;
+                w_out_ += member_info.w_out_;
                 member_indices_.emplace(member_info.entity_index_);
             } else {
-                this->w_in_ -= member_info.w_in_;
-                this->w_out_ -= member_info.w_out_;
+                w_in_ -= member_info.w_in_;
+                w_out_ -= member_info.w_out_;
                 member_indices_.emplace(member_info.entity_index_);
             }
         }
