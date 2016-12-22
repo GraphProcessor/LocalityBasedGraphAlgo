@@ -4,7 +4,6 @@
 
 #include "cis_sequential_algorithm.h"
 
-
 namespace yche {
     Cis::Cis(unique_ptr<Cis::Graph> &graph_ptr, double lambda) : lambda_(lambda), graph_ptr_(std::move(graph_ptr)) {
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) { vertices_.emplace_back(*vp.first); }
@@ -27,7 +26,7 @@ namespace yche {
                           community.w_in_, community.w_out_, lambda_);
     }
 
-    double Cis::CalDensity(Community &community, Member &member, MutationType mutation_type) const {
+    double Cis::CalDensity(Community &community, Entity &member, MutationType mutation_type) const {
         if (mutation_type == MutationType::add_neighbor) {
             return CalDensity(static_cast<int>(community.member_indices_.size() + 1),
                               community.w_in_ + member.w_in_, community.w_out_ + member.w_out_, lambda_);
@@ -38,71 +37,71 @@ namespace yche {
         }
     }
 
-    void Cis::InitializeSeeds(const MemberIdxSet &seed, Community &community,
-                              MemberDict &member_dict, MemberDict &neighbor_dict,
+    void Cis::InitializeSeeds(const EntityIdxSet &seed, Community &community,
+                              EntityDict &member_dict, EntityDict &neighbor_dict,
                               property_map<Graph, vertex_index_t>::type &vertex_index_map,
                               property_map<Graph, edge_weight_t>::type &edge_weight_map) {
-        MemberIdxSet to_computed_neighbors;
+        EntityIdxSet neighbor_indices;
 
         for (auto &seed_vertex_index :seed) {
-            auto member_info_ptr = Member(seed_vertex_index);
             community.member_indices_.emplace(seed_vertex_index);
-            Vertex seed_vertex = vertices_[seed_vertex_index];
 
+            auto member = Entity(seed_vertex_index);
+            Vertex seed_vertex = vertices_[seed_vertex_index];
             for (auto vp = adjacent_vertices(seed_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
-                auto neighbor_vertex_index = static_cast<int>(vertex_index_map[*vp.first]);
-                auto edge_weight = edge_weight_map[
-                        edge(seed_vertex, vertices_[neighbor_vertex_index], *graph_ptr_).first];
-                if (seed.find(neighbor_vertex_index) != seed.end()) {
-                    member_info_ptr.w_in_ += edge_weight;
+                auto adjacent_vertex_index = static_cast<int>(vertex_index_map[*vp.first]);
+                auto edge_weight = edge_weight_map[edge(seed_vertex, vertices_[adjacent_vertex_index],
+                                                        *graph_ptr_).first];
+                if (seed.find(adjacent_vertex_index) != seed.end()) {
+                    member.w_in_ += edge_weight;
                     community.w_in_ += edge_weight;
                 } else {
-                    member_info_ptr.w_out_ += edge_weight;
+                    member.w_out_ += edge_weight;
                     community.w_out_ += edge_weight;
-                    to_computed_neighbors.emplace(neighbor_vertex_index);
+                    neighbor_indices.emplace(adjacent_vertex_index);
                 }
             }
-            member_dict.emplace(member_info_ptr.member_index_, member_info_ptr);
+            member_dict.emplace(member.entity_index_, member);
         }
 
-        for (auto &neighbor_vertex_index :to_computed_neighbors) {
-            auto neighbor_info_ptr = Member(neighbor_vertex_index);
+        for (auto &neighbor_vertex_index :neighbor_indices) {
+            auto neighbor = Entity(neighbor_vertex_index);
             Vertex neighbor_vertex = vertices_[neighbor_vertex_index];
             for (auto vp = adjacent_vertices(neighbor_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
-                auto neighbor_neighbor_vertex_index = static_cast<int>(vertex_index_map[*vp.first]);
-                auto edge_weight = edge_weight_map[edge(neighbor_vertex, vertices_[neighbor_neighbor_vertex_index],
+                auto adjacent_vertex_index = static_cast<int>(vertex_index_map[*vp.first]);
+                auto edge_weight = edge_weight_map[edge(neighbor_vertex, vertices_[adjacent_vertex_index],
                                                         *graph_ptr_).first];
-                if (seed.find(neighbor_neighbor_vertex_index) != seed.end()) {
-                    neighbor_info_ptr.w_in_ += edge_weight;
+                if (seed.find(adjacent_vertex_index) != seed.end()) {
+                    neighbor.w_in_ += edge_weight;
                 } else {
-                    neighbor_info_ptr.w_out_ += edge_weight;
+                    neighbor.w_out_ += edge_weight;
                 }
             }
-            neighbor_dict.emplace(neighbor_info_ptr.member_index_, neighbor_info_ptr);
+            neighbor_dict.emplace(neighbor.entity_index_, neighbor);
         }
     }
 
     void Cis::UpdateForAddNeighbor(const Cis::Vertex &mutate_vertex,
                                    Community &community,
-                                   MemberDict &member_dict, MemberDict &neighbor_dict,
+                                   EntityDict &member_dict, EntityDict &neighbor_dict,
                                    property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                    property_map<Graph, edge_weight_t>::type &edge_weight_map) {
         //Update Member and Neighbor List
         for (auto vp = adjacent_vertices(mutate_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto check_neighbor_vertex = *vp.first;
             auto check_neighbor_vertex_index = static_cast<int>(vertex_index_map[check_neighbor_vertex]);
-            auto check_neighbor = Member(check_neighbor_vertex_index);
+            auto check_neighbor = Entity(check_neighbor_vertex_index);
             auto edge_weight = edge_weight_map[edge(mutate_vertex, check_neighbor_vertex, *graph_ptr_).first];
 
-            auto iter = member_dict.find(check_neighbor.member_index_);
+            auto iter = member_dict.find(check_neighbor.entity_index_);
             if (iter != member_dict.end() ||
-                (iter = neighbor_dict.find(check_neighbor.member_index_)) != neighbor_dict.end()) {
+                (iter = neighbor_dict.find(check_neighbor.entity_index_)) != neighbor_dict.end()) {
                 //Update Info In Members and Neighbors
                 iter->second.w_in_ += edge_weight;
                 iter->second.w_out_ -= edge_weight;
             } else {
                 //Add New Neighbor
-                auto member = Member(check_neighbor_vertex_index);
+                auto member = Entity(check_neighbor_vertex_index);
                 for (auto vp_inner = adjacent_vertices(check_neighbor_vertex, *graph_ptr_);
                      vp_inner.first != vp_inner.second; ++vp_inner.first) {
                     auto neighbor_neighbor_vertex_index = static_cast<int>(vertex_index_map[*vp_inner.first]);
@@ -115,25 +114,25 @@ namespace yche {
                         member.w_out_ += edge_weight;
                     }
                 }
-                neighbor_dict.emplace(member.member_index_, member);
+                neighbor_dict.emplace(member.entity_index_, member);
             }
         }
     }
 
     void Cis::UpdateForRemoveMember(const Cis::Vertex &mutate_vertex, Community &community,
-                                    MemberDict &member_dict, MemberDict &neighbor_dict,
+                                    EntityDict &member_dict, EntityDict &neighbor_dict,
                                     property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                     property_map<Graph, edge_weight_t>::type &edge_weight_map) {
         //Update Member and Neighbor List
         for (auto vp = adjacent_vertices(mutate_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto check_neighbor_vertex = *vp.first;
             auto check_neighbor_vertex_index = static_cast<int>(vertex_index_map[check_neighbor_vertex]);
-            auto check_neighbor_ptr = Member(check_neighbor_vertex_index);
+            auto check_neighbor_ptr = Entity(check_neighbor_vertex_index);
             auto edge_weight = edge_weight_map[edge(mutate_vertex, check_neighbor_vertex, *graph_ptr_).first];
 
-            auto iter = member_dict.find(check_neighbor_ptr.member_index_);
+            auto iter = member_dict.find(check_neighbor_ptr.entity_index_);
             if (iter != member_dict.end() ||
-                (iter = neighbor_dict.find(check_neighbor_ptr.member_index_)) != neighbor_dict.end()) {
+                (iter = neighbor_dict.find(check_neighbor_ptr.entity_index_)) != neighbor_dict.end()) {
                 //Update Info In Members and Neighbors
                 iter->second.w_in_ -= edge_weight;
                 iter->second.w_out_ += edge_weight;
@@ -141,25 +140,25 @@ namespace yche {
         }
     }
 
-    void Cis::MutateStates(MutationType mutation_type, vector<Member> to_check_list,
-                           Community &community, MemberDict &expand_member_dict,
-                           MemberDict &shrink_member_dict, auto degree_cmp_obj, bool &change_flag,
+    void Cis::MutateStates(MutationType mutation_type, vector<Entity> to_check_list,
+                           Community &community, EntityDict &expand_entity_dict,
+                           EntityDict &shrink_entity_dict, auto degree_cmp_obj, bool &change_flag,
                            property_map<Graph, vertex_index_t>::type &vertex_index_map,
                            property_map<Graph, edge_weight_t>::type &edge_weight_map) {
-        for (auto &neighbor_pair:shrink_member_dict) { to_check_list.emplace_back(neighbor_pair.second); }
+        for (auto &neighbor_pair:shrink_entity_dict) { to_check_list.emplace_back(neighbor_pair.second); }
         sort(to_check_list.begin(), to_check_list.end(), degree_cmp_obj);
         for (auto &check_member:to_check_list) {
             if (CalDensity(community) < CalDensity(community, check_member, mutation_type)) {
                 change_flag = true;
                 community.UpdateInfoForMutation(check_member, mutation_type);
-                shrink_member_dict.erase(check_member.member_index_);
-                auto check_vertex = vertices_[check_member.member_index_];
-                expand_member_dict.emplace(check_member.member_index_, check_member);
+                shrink_entity_dict.erase(check_member.entity_index_);
+                auto check_vertex = vertices_[check_member.entity_index_];
+                expand_entity_dict.emplace(check_member.entity_index_, check_member);
                 if (mutation_type == MutationType::add_neighbor) {
-                    UpdateForAddNeighbor(check_vertex, community, expand_member_dict, shrink_member_dict,
+                    UpdateForAddNeighbor(check_vertex, community, expand_entity_dict, shrink_entity_dict,
                                          vertex_index_map, edge_weight_map);
                 } else {
-                    UpdateForRemoveMember(check_vertex, community, shrink_member_dict, expand_member_dict,
+                    UpdateForRemoveMember(check_vertex, community, shrink_entity_dict, expand_entity_dict,
                                           vertex_index_map, edge_weight_map);
                 }
             }
@@ -167,46 +166,51 @@ namespace yche {
 
     }
 
-    Community Cis::SplitAndChoose(MemberIdxSet &member_set) {
-        auto community_vec = vector<Community>();
+    Community Cis::FindConnectedComponent(EntityIdxSet &member_set, EntityIdxSet &mark_set, int first_mem_idx,
+                                          property_map<Graph, vertex_index_t>::type &vertex_index_map,
+                                          property_map<Graph, edge_weight_t>::type &edge_weight_map) {
+        auto community = Community();
         auto frontier = queue<int>();
+        frontier.emplace(first_mem_idx);
+        mark_set.emplace(first_mem_idx);
+        while (frontier.size() > 0) {
+            Edge edge;
+            bool edge_exist_flag;
+            auto expand_vertex_index = frontier.front();
+            auto expand_vertex = vertices_[expand_vertex_index];
+
+            community.member_indices_.emplace(expand_vertex_index);
+            for (auto vp = adjacent_vertices(vertices_[expand_vertex_index], *graph_ptr_);
+                 vp.first != vp.second; ++vp.first) {
+                auto neighbor_vertex = *vp.first;
+                auto adjacency_vertex_index = static_cast<int>(vertex_index_map[neighbor_vertex]);
+                tie(edge, edge_exist_flag) = boost::edge(expand_vertex, neighbor_vertex, *graph_ptr_);
+
+                auto iter = member_set.find(adjacency_vertex_index);
+                if (mark_set.find(adjacency_vertex_index) == mark_set.end() && iter != member_set.end()) {
+                    community.w_in_ += edge_weight_map[edge];
+                    frontier.emplace(adjacency_vertex_index);
+                    mark_set.emplace(adjacency_vertex_index);
+                } else {
+                    community.w_out_ = edge_weight_map[edge];
+                }
+            }
+            member_set.erase(expand_vertex_index);
+            frontier.pop();
+        }
+        return community;
+    }
+
+    Community Cis::SplitAndChoose(EntityIdxSet &member_set) {
+        auto community_vec = vector<Community>();
         auto mark_set = std::unordered_set<int>();
         property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         property_map<Graph, edge_weight_t>::type edge_weight_map = boost::get(edge_weight, *graph_ptr_);
 
         while (member_set.size() > 0) {
             auto first_mem_idx = *member_set.begin();
-            frontier.emplace(first_mem_idx);
-            mark_set.emplace(first_mem_idx);
-
-            auto community = Community();
-            //One Connected Component
-            while (frontier.size() > 0) {
-                Edge edge;
-                bool edge_exist_flag;
-                auto expand_vertex_index = frontier.front();
-                auto expand_vertex = vertices_[expand_vertex_index];
-                //Add To Community Only At Start of Expansion
-                community.member_indices_.emplace(expand_vertex_index);
-                for (auto vp = adjacent_vertices(vertices_[expand_vertex_index], *graph_ptr_);
-                     vp.first != vp.second; ++vp.first) {
-                    auto neighbor_vertex = *vp.first;
-                    auto adjacency_vertex_index = static_cast<int>(vertex_index_map[neighbor_vertex]);
-                    tie(edge, edge_exist_flag) = boost::edge(expand_vertex, neighbor_vertex, *graph_ptr_);
-
-                    auto iter = member_set.find(adjacency_vertex_index);
-                    if (mark_set.find(adjacency_vertex_index) == mark_set.end() && iter != member_set.end()) {
-                        community.w_in_ += edge_weight_map[edge];
-                        frontier.emplace(adjacency_vertex_index);
-                        mark_set.emplace(adjacency_vertex_index);
-                    } else {
-                        community.w_out_ = edge_weight_map[edge];
-                    }
-                }
-                member_set.erase(expand_vertex_index);
-                frontier.pop();
-            }
-            community_vec.emplace_back(std::move(community));
+            community_vec.emplace_back(
+                    FindConnectedComponent(member_set, mark_set, first_mem_idx, vertex_index_map, edge_weight_map));
         }
 
         sort(community_vec.begin(), community_vec.end(),
@@ -222,22 +226,22 @@ namespace yche {
         return community_vec[0];
     }
 
-    MemberIdxVec Cis::ExpandSeed(MemberIdxSet &seed) {
+    EntityIdxVec Cis::ExpandSeed(EntityIdxSet &entity_idx_set) {
         auto community = Community();
-        MemberDict member_dict;
-        MemberDict neighbor_dict;
+        EntityDict member_dict;
+        EntityDict neighbor_dict;
         property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         property_map<Graph, edge_weight_t>::type edge_weight_map = boost::get(edge_weight, *graph_ptr_);
-        InitializeSeeds(seed, community, member_dict, neighbor_dict, vertex_index_map, edge_weight_map);
+        InitializeSeeds(entity_idx_set, community, member_dict, neighbor_dict, vertex_index_map, edge_weight_map);
         bool change_flag = true;
         auto degree_cmp_obj = [this](auto &left_member, auto &right_member) {
-            return degree(this->vertices_[left_member.member_index_], *this->graph_ptr_) <
-                   degree(this->vertices_[right_member.member_index_], *this->graph_ptr_);
+            return degree(this->vertices_[left_member.entity_index_], *this->graph_ptr_) <
+                   degree(this->vertices_[right_member.entity_index_], *this->graph_ptr_);
         };
 
         while (change_flag) {
             change_flag = false;
-            vector<Member> to_check_list;
+            vector<Entity> to_check_list;
             MutateStates(MutationType::add_neighbor, to_check_list, community, member_dict, neighbor_dict,
                          degree_cmp_obj, change_flag, vertex_index_map, edge_weight_map);
             MutateStates(MutationType::remove_member, to_check_list, community, neighbor_dict, member_dict,
@@ -246,16 +250,16 @@ namespace yche {
         }
 
         //For Later Merge Usage
-        auto member_vec = MemberIdxVec();
+        auto member_vec = EntityIdxVec();
         member_vec.reserve(community.member_indices_.size());
-        for (auto member_index:community.member_indices_) {
-            member_vec.emplace_back(member_index);
+        for (auto entity_index:community.member_indices_) {
+            member_vec.emplace_back(entity_index);
         }
         sort(member_vec.begin(), member_vec.end());
         return member_vec;
     }
 
-    double Cis::GetIntersectRatio(MemberIdxVec &left_community, MemberIdxVec &right_community) const {
+    double Cis::GetIntersectRatio(EntityIdxVec &left_community, EntityIdxVec &right_community) const {
         auto intersect_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_intersection(left_community.begin(), left_community.end(),
                                          right_community.begin(), right_community.end(), intersect_set.begin());
@@ -264,7 +268,7 @@ namespace yche {
         return rate;
     }
 
-    MemberIdxVec Cis::GetUnion(MemberIdxVec &left_community, MemberIdxVec &right_community) const {
+    EntityIdxVec Cis::GetUnion(EntityIdxVec &left_community, EntityIdxVec &right_community) const {
         auto union_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_union(left_community.begin(), left_community.end(),
                                   right_community.begin(), right_community.end(), union_set.begin());
@@ -272,7 +276,7 @@ namespace yche {
         return union_set;
     }
 
-    void Cis::MergeCommToGlobal(MemberIdxVec &result_community) {
+    void Cis::MergeCommToGlobal(EntityIdxVec &result_community) {
         if (overlap_community_vec_.size() == 0) {
             overlap_community_vec_.emplace_back(std::move(result_community));
         } else {
@@ -291,13 +295,12 @@ namespace yche {
         }
     }
 
-
     Cis::OverlappingCommunityVec Cis::ExecuteCis() {
         auto community_vec = OverlappingCommunityVec();
         property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             Vertex vertex = *vp.first;
-            auto partial_comm_members = MemberIdxSet();
+            auto partial_comm_members = EntityIdxSet();
             partial_comm_members.emplace(vertex_index_map[vertex]);
             auto result_community = ExpandSeed(partial_comm_members);
             MergeCommToGlobal(result_community);
