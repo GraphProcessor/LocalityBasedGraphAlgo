@@ -7,6 +7,7 @@ Here, graph algortihms are those locality-based overlapping community detection 
 - [src/algorithm_demo](src/algorithm_demo), simple demo source codes to execute graph algorithm program
 - [src/evaluation_metrics](src/evaluation_metrics), evaluation metrics for graph algorithms
 - [src/parallel_utils](src/parallel_utils), parallel utilities for accelerating computations of graph algorithms
+- [src/util](src/util), utilities for graph input and pretty printing
 
 ##Demo Files
 - [demo_files/demo_graph.csv](demo_files/demo_graph.csv), toy graph in edge-list format
