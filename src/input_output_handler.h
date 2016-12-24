@@ -15,6 +15,7 @@
 #include "parallel_utils/dataflow_scheduler.h"
 #include "parallel_utils/reduce_scheduler.h"
 
+
 namespace yche {
     using namespace std;
 
@@ -27,63 +28,55 @@ namespace yche {
                 src_index_(src_index_), dst_index_(dst_index_), edge_weight_(edge_weight_) {}
     };
 
-    void ReadEdgeListWithWeightInToEdgeVector(char *const &file_name_ptr, vector<Edge> &edges_vec) {
-        ifstream fin(file_name_ptr);
-        string s;
-        if (!fin) {
-            cout << "Error opening " << string(file_name_ptr) << " for input" << endl;
+    vector<Edge> ReadWeightedEdgeList(auto &&file_name_str) {
+        auto edges_vec = vector<Edge>();
+        auto in_stream = ifstream(file_name_str);
+        auto s = string();
+        if (!in_stream) {
+            cout << "Error opening " << string(file_name_str) << " for input" << endl;
             exit(-1);
-        }
+        } else {
+            while (getline(in_stream, s)) {
+                boost::regex pat("#.*edge_weight.*");
+                boost::smatch matches;
+                cout << s << endl;
+                if (boost::regex_match(s, matches, pat))
+                    continue;
 
-        int i = 0;
-        while (getline(fin, s)) {
-            using namespace boost;
-            boost::regex pat("$#.*edge_weight");
-            boost::smatch matches;
-            cout << s << endl;
-            if (boost::regex_match(s, matches, pat))
-                continue;
-
-            int first_vertex_name = -1;
-            int second_vertex_name = -1;
-            double edge_weight = -1;
-            stringstream string_stream;
-            string_stream.clear();
-            string_stream.str(s);
-            string_stream >> first_vertex_name >> second_vertex_name >> edge_weight;
-            cout << "src:" << first_vertex_name << ",dst:" << second_vertex_name
-                 << ",edge_weight:" << edge_weight << endl;
-            edges_vec.emplace_back(first_vertex_name, second_vertex_name, edge_weight);
-            i++;
+                auto first_vertex_name = -1;
+                auto second_vertex_name = -1;
+                auto edge_weight = -1.0;
+                auto string_stream = stringstream(s);
+                string_stream >> first_vertex_name >> second_vertex_name >> edge_weight;
+                edges_vec.emplace_back(first_vertex_name, second_vertex_name, edge_weight);
+            }
         }
+        return edges_vec;
     }
 
-    void ReadEdgeListInToEdgeVector(char *const &file_name_ptr, vector<pair<int, int>> &edges_vec) {
-        ifstream fin(file_name_ptr);
-        if (!fin) {
-            cout << "Error opening " << string(file_name_ptr) << " for input" << endl;
+    vector<pair<int, int>> ReadEdgeList(auto &&file_name_str) {
+        auto edges_vec = vector<pair<int, int>>();
+        auto in_stream = ifstream(file_name_str);
+        auto s = string();
+        if (!in_stream) {
+            cout << "Error opening " << string(file_name_str) << " for input" << endl;
             exit(-1);
-        }
+        } else {
+            while (getline(in_stream, s)) {
+                boost::regex pat("#.*");
+                boost::smatch matches;
+                cout << s << endl;
+                if (boost::regex_match(s, matches, pat))
+                    continue;
 
-        string s;
-        int line_num = 0;
-        while (getline(fin, s)) {
-            using namespace boost;
-            boost::regex pat("$#.*");
-            boost::smatch matches;
-            if (boost::regex_match(s, matches, pat))
-                continue;
-
-            auto first_vertex_name = -1;
-            auto second_vertex_name = -1;
-            stringstream string_stream;
-            string_stream.clear();
-            string_stream.str(s);
-            string_stream >> first_vertex_name;
-            string_stream >> second_vertex_name;
-            edges_vec.emplace_back(first_vertex_name, second_vertex_name);
-            line_num++;
+                auto first_vertex_name = -1;
+                auto second_vertex_name = -1;
+                auto string_stream = stringstream(s);
+                string_stream >> first_vertex_name >> second_vertex_name;
+                edges_vec.emplace_back(first_vertex_name, second_vertex_name);
+            }
         }
+        return edges_vec;
     }
 
     template<typename Algorithm>
@@ -103,6 +96,13 @@ namespace yche {
             cout << endl;
         }
 #endif
+    }
+}
+
+namespace std {
+    ostream &operator<<(ostream &my_ostream, yche::Edge &edge) {
+        cout << "src:" << edge.src_index_ << ",dst:" << edge.dst_index_ << ",weight:" << edge.edge_weight_ << endl;
+        return my_ostream;
     }
 }
 #endif //CODES_YCHE_INPUT_OUTPUT_HANDLER_H

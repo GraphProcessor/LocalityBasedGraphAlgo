@@ -15,10 +15,11 @@
 
 #include "util/pretty_print.h"
 
-using namespace std;
-using namespace boost;
 
 namespace yche {
+    using namespace std;
+    using namespace boost;
+
     constexpr double DOUBLE_ACCURACY = 0.00001;
     using EntityIdxSet = std::unordered_set<int>;
     using EntityIdxVec = vector<int>;

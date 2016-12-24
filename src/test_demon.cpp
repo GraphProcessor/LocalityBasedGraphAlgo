@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     using VertexIndexType =int;
     vector<pair<VertexIndexType, VertexIndexType>> edges_vec;
-    ReadEdgeListInToEdgeVector<VertexIndexType>(file_name_ptr, edges_vec);
+    ReadEdgeList < VertexIndexType>(file_name_ptr, edges_vec);
 
     auto graph_ptr = make_unique<Demon::Graph>();
     map<int, Demon::Vertex> name_vertex_map;

@@ -11,25 +11,27 @@
 #include <random>
 #include <iostream>
 
-using namespace boost;
-using namespace std;
 
-enum vertex_weight_t {
-    vertex_weight
-};
-enum vertex_label_t {
-    vertex_label
-};
-enum vertex_id_t {
-    vertex_id
-};
 namespace boost {
+    enum vertex_weight_t {
+        vertex_weight
+    };
+    enum vertex_label_t {
+        vertex_label
+    };
+    enum vertex_id_t {
+        vertex_id
+    };
+
     BOOST_INSTALL_PROPERTY(vertex, weight);
     BOOST_INSTALL_PROPERTY(vertex, label);
     BOOST_INSTALL_PROPERTY(vertex, id);
 }
 
 namespace yche {
+    using namespace boost;
+    using namespace std;
+
     class Demon {
     public:
         using VertexProperties = property<vertex_weight_t, double, property<vertex_index_t, int>>;

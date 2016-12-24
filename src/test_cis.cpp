@@ -44,12 +44,12 @@ int main(int argc, char *argv[]) {
 
     using VertexIndexType =int;
     vector<pair<VertexIndexType, VertexIndexType>> edges_vec;
-    ReadEdgeListInToEdgeVector<VertexIndexType>(file_name_ptr, edges_vec);
+    ReadEdgeList < VertexIndexType>(file_name_ptr, edges_vec);
 
     auto graph_ptr = make_unique<Cis::Graph>();
     map<VertexIndexType, Cis::Vertex> name_vertex_map;
     map<VertexIndexType, VertexIndexType> index_name_map;
-    ConstructGraphWithEdgeVecForCIS<VertexIndexType>(graph_ptr, name_vertex_map, index_name_map, edges_vec);
+    ConstructGrap<VertexIndexType>(graph_ptr, name_vertex_map, index_name_map, edges_vec);
 
     auto cis_ptr = make_unique<Cis>(std::move(graph_ptr), 0);
     ExecuteAlgorithm<Cis, VertexIndexType>(thread_num, cis_ptr, index_name_map);
