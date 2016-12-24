@@ -5,7 +5,6 @@
 #ifndef OCD_EVALUATION_YCHE_MODULARITY_H
 #define OCD_EVALUATION_YCHE_MODULARITY_H
 
-#include "include_header.h"
 #include "input_output_handler.h"
 
 namespace yche {
@@ -20,14 +19,12 @@ namespace yche {
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using VertexIndexType = unsigned long;
 
-
         unique_ptr<Graph> graph_ptr_;
-        CoefficientFunc coefficient_calc_func_;
-
         map<VertexIndexType, Vertex> name_vertex_map_;
         vector<pair<VertexIndexType, VertexIndexType>> edge_vec_;
         vector<unique_ptr<vector<Vertex>>> overlap_comms_;
 
+        CoefficientFunc coefficient_calc_func_;
         vector<int> community_belongings_count_vec_;
         vector<double> comm_belong_count_rev_vec_;
         vector<VertexIndexType> in_degree_vec_;
@@ -38,7 +35,6 @@ namespace yche {
         void InitAlphaVertexCommunity();
 
     public:
-
         ModularityLinkBelonging(char *input_file_str, char *output_file_str, CoefficientFunc coefficient_calc_func_) :
                 coefficient_calc_func_(coefficient_calc_func_) {
             ConstructGraph(input_file_str);
@@ -54,16 +50,16 @@ namespace yche {
         graph_ptr_ = make_unique<Graph>();
         yche::ReadEdgeList<VertexIndexType>(input_file_str, edge_vec_);
 
-        for (auto iter = edge_vec_.begin(); iter != edge_vec_.end(); ++iter) {
-            if (name_vertex_map_.find(iter->first) == name_vertex_map_.end()) {
+        for (auto &edge:edge_vec_) {
+            if (name_vertex_map_.find(edge.first) == name_vertex_map_.end()) {
                 Vertex vertex = add_vertex(*graph_ptr_);
-                name_vertex_map_.insert(make_pair(iter->first, vertex));
+                name_vertex_map_.emplace(edge.first, vertex);
             }
-            if (name_vertex_map_.find(iter->second) == name_vertex_map_.end()) {
+            if (name_vertex_map_.find(edge.second) == name_vertex_map_.end()) {
                 Vertex vertex = add_vertex(*graph_ptr_);
-                name_vertex_map_.insert(make_pair(iter->second, vertex));
+                name_vertex_map_.emplace(edge.second, vertex);
             }
-            add_edge(name_vertex_map_[iter->first], name_vertex_map_[iter->second], *graph_ptr_);
+            add_edge(name_vertex_map_[edge.first], name_vertex_map_[edge.second], *graph_ptr_);
         }
         community_belongings_count_vec_.resize(num_vertices(*graph_ptr_), 0);
         comm_belong_count_rev_vec_.resize(community_belongings_count_vec_.size(), 0);
@@ -110,12 +106,10 @@ namespace yche {
                     }
                 }
             }
-
             for (auto i = 0; i < comm_size; i++) {
                 f_sum_in_arr[i] /= vertices_num;
                 f_sum_out_arr[i] /= vertices_num;
             }
-
             for (auto i = 0; i < comm_size; i++) {
                 for (auto j = 0; j < comm_size; j++) {
                     if (i != j && f_value_matrix[i][j] > PRECISION) {
@@ -125,10 +119,8 @@ namespace yche {
                     }
                 }
             }
-
             cout << "Curr Modularity:" << modularity_rate / edge_num << endl << endl;
         }
-
         modularity_rate = modularity_rate / edge_num;
         return modularity_rate;
     }

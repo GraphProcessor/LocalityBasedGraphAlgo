@@ -5,11 +5,21 @@
 #ifndef OCD_EVALUATION_YCHE_INPUT_OUTPUT_HANDLER_H
 #define OCD_EVALUATION_YCHE_INPUT_OUTPUT_HANDLER_H
 
-#include "include_header.h"
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <memory>
+#include <cmath>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
 
 namespace yche {
     using namespace std;
     using namespace boost;
+    struct LinkBelongingModularity;
+    struct NodeBelongingModularity;
 
     template<typename VertexIndexType>
     void ReadEdgeList(const char *file_name_ptr, vector<pair<VertexIndexType, VertexIndexType>> &edges_vec) {
@@ -69,9 +79,7 @@ namespace yche {
                     }
                     overlap_communities.push_back(std::move(community_ptr));
                 }
-
             }
-
         }
     }
 }
