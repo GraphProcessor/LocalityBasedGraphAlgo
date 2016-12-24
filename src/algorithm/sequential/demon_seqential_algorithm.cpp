@@ -160,7 +160,7 @@ namespace yche {
         return rate;
     }
 
-    Community Demon::GetUnion(Community &left_community, Community &right_community) {
+    Demon::Community Demon::GetUnion(Community &left_community, Community &right_community) {
         auto union_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_union(left_community.begin(), left_community.end(), right_community.begin(),
                                   right_community.end(), union_set.begin());
@@ -196,7 +196,7 @@ namespace yche {
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
-            auto community_vec = PropagateLabel(std::move(sub_graph_ptr), ego_vertex);
+            auto community_vec = PropagateLabel(sub_graph_ptr, ego_vertex);
             MergeToGlobal(community_vec);
         }
     }

@@ -16,7 +16,7 @@ include_directories(".")
 set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_scheduler.h
         parallel_utils/fine_grained_merge_scheduler.h parallel_utils/parallel_configuration.h
         parallel_utils/thread_pool_breakable.h parallel_utils/thread_pool_base.h)
-set(GraphIOUtilFiles input_output_handler.h)
+set(GraphIOUtilFiles util/graph_io_helper.h)
 set(DemonFiles test_demon.cpp algorithm/demon_algorithm.cpp algorithm/demon_algorithm.h)
 set(CISFiles test_cis.cpp algorithm/cis_algorithm.cpp algorithm/cis_algorithm.h algorithm/sequential/cis_sequential_algorithm.cpp algorithm/sequential/cis_sequential_algorithm.h)
 
