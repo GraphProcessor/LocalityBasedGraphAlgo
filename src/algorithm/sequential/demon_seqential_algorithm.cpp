@@ -17,7 +17,7 @@ namespace yche {
         auto sub_vertices = vector<SubGraphVertex>();
         auto sub_graph_index_dict = map<int, int>();
         for (auto vp = adjacent_vertices(ego_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
-            graph_traits<SubGraph>::vertex_descriptor sub_vertex = add_vertex(*ego_net_ptr);
+            auto sub_vertex = add_vertex(*ego_net_ptr);
             sub_vertices.emplace_back(sub_vertex);
 
             auto graph_vertex_index = static_cast<int>(vertex_index_map[*vp.first]);
@@ -37,8 +37,8 @@ namespace yche {
                 bool is_edge_exists = edge(*vp.first, *vp_inner.first, *graph_ptr_).second;
                 if (is_edge_exists) {
                     auto end_sub_vertex_index = sub_graph_index_dict[vertex_index_map[*vp_inner.first]];
-                    auto end_vertex_ptr = sub_vertices[end_sub_vertex_index];
-                    add_edge(source_sub_vertex, end_vertex_ptr, *ego_net_ptr);
+                    auto end_vertex = sub_vertices[end_sub_vertex_index];
+                    add_edge(source_sub_vertex, end_vertex, *ego_net_ptr);
                 }
             }
         }
@@ -92,8 +92,8 @@ namespace yche {
         }
     }
 
-    Demon::CommunityVec Demon::GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr,
-                                               Vertex &ego_vertex, int curr_index_indicator) {
+    Demon::CommunityVec
+    Demon::GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, int curr_label_idx) {
         auto sub_vertex_label_map = get(vertex_label, *sub_graph_ptr);
         auto sub_vertex_id_map = get(vertex_id, *sub_graph_ptr);
         auto vertex_index_map = get(vertex_index, *graph_ptr_);
@@ -101,7 +101,7 @@ namespace yche {
 
         for (auto vp = vertices(*sub_graph_ptr); vp.first != vp.second; ++vp.first) {
             auto sub_vertex = *vp.first;
-            auto v_label = sub_vertex_label_map[sub_vertex][curr_index_indicator];
+            auto v_label = sub_vertex_label_map[sub_vertex][curr_label_idx];
             if (community_dict.find(v_label) == community_dict.end()) {
                 community_dict.emplace(v_label, Community());
             }
@@ -111,18 +111,15 @@ namespace yche {
         auto community_vec = CommunityVec();
         for (auto &idx_community:community_dict) {
             //Add Ego Vertex
-            //Make The Community Vector Sorted
             auto &community = idx_community.second;
             community.emplace_back(vertex_index_map[ego_vertex]);
             sort(community.begin(), community.end());
             community_vec.emplace_back(std::move(community));
         }
 
+        //Outlier
         if (community_dict.size() == 0) {
-            //Outlier
-            auto community = Community();
-            community.emplace_back(vertex_index_map[ego_vertex]);
-            community_vec.emplace_back(std::move(community));
+            community_vec.emplace_back(Community(1, static_cast<int>(vertex_index_map[ego_vertex])));
         }
         return community_vec;
     }
@@ -132,28 +129,28 @@ namespace yche {
         auto sub_vertex_label_map = get(vertex_label, *sub_graph_ptr);
         static thread_local random_device rand_d;
         static thread_local std::mt19937 rand_generator(rand_d());
-        auto iteration_num = 0;
-        for (; iteration_num < max_iter_; iteration_num++) {
-            auto curr_index_indicator = (iteration_num + 1) % 2;
-            auto last_index_indicator = iteration_num % 2;
+
+        auto last_label_idx = 0;
+        auto curr_label_idx = 1;
+
+        for (auto iter_num = 0; iter_num < max_iter_; iter_num++) {
             auto all_sub_vertices = vector<SubGraphVertex>();
             for (auto vp = vertices(*sub_graph_ptr); vp.first != vp.second; ++vp.first) {
                 all_sub_vertices.emplace_back(*vp.first);
             }
             shuffle(all_sub_vertices.begin(), all_sub_vertices.end(), rand_generator);
-
             for (auto vertex_iter = all_sub_vertices.begin(); vertex_iter != all_sub_vertices.end(); ++vertex_iter) {
-                PropagateLabelSingle(sub_graph_ptr, *vertex_iter, rand_generator, last_index_indicator,
-                                     curr_index_indicator, sub_vertex_weight_map, sub_vertex_label_map);
+                PropagateLabelSingle(sub_graph_ptr, *vertex_iter, rand_generator, last_label_idx,
+                                     curr_label_idx, sub_vertex_weight_map, sub_vertex_label_map);
             }
+            swap(last_label_idx, curr_label_idx);
         }
 
-        auto curr_index_indicator = (iteration_num + 1) % 2;
-        auto community_vec = GetCommunityVec(sub_graph_ptr, ego_vertex, curr_index_indicator);
+        auto community_vec = GetCommunityVec(sub_graph_ptr, ego_vertex, curr_label_idx);
         return community_vec;
     }
 
-    double Demon::GetIntersectRatio(Community &left_community, Community &right_community) {
+    double Demon::GetIntersectRatio(Community &left_community, Community &right_community) const {
         auto intersect_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_intersection(left_community.begin(), left_community.end(), right_community.begin(),
                                          right_community.end(), intersect_set.begin());
@@ -162,7 +159,7 @@ namespace yche {
         return rate;
     }
 
-    Demon::Community Demon::GetUnion(Community &left_community, Community &right_community) {
+    Demon::Community Demon::GetUnion(Community &left_community, Community &right_community) const {
         auto union_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_union(left_community.begin(), left_community.end(), right_community.begin(),
                                   right_community.end(), union_set.begin());
@@ -179,7 +176,7 @@ namespace yche {
             }
         } else {
             for (auto &new_community:result) {
-                bool first_access_flag = false;
+                auto first_access_flag = false;
                 for (auto &old_community:overlap_community_vec_) {
                     auto cover_rate_result = GetIntersectRatio(new_community, old_community);
                     if (cover_rate_result > epsilon_) {
@@ -201,7 +198,6 @@ namespace yche {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
             auto community_vec = PropagateLabel(sub_graph_ptr, ego_vertex);
-            cout << "partial result:" << community_vec << endl;
             MergeToGlobal(community_vec);
         }
     }

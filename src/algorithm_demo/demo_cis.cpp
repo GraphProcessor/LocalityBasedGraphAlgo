@@ -3,8 +3,10 @@
 //
 
 #include "algorithm/sequential/cis_sequential_algorithm.h"
-#include "util/graph_io_helper.h"
+
 #include "util/pretty_print.h"
+#include "util/graph_io_helper.h"
+#include "util/basic_io_helper.h"
 
 using yche::Cis;
 using yche::Edge;
@@ -50,6 +52,10 @@ int main(int argc, char *argv[]) {
 
     auto cis = Cis(graph_ptr, 0);
     cis.ExecuteCis();
-    cout << "result:" << cis.overlap_community_vec_ << endl;
+
+    auto &arr_2d = cis.overlap_community_vec_;
+    auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
+    cout << "idx result:" << arr_2d << endl;
+    cout << "name result:" << name_arr_2d << endl;
     return 0;
 }

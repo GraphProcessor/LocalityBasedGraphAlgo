@@ -4,6 +4,7 @@
 
 #include "algorithm/sequential/demon_sequential_algorithm.h"
 #include "util/graph_io_helper.h"
+#include "util/basic_io_helper.h"
 #include "util/pretty_print.h"
 
 using namespace std;
@@ -49,5 +50,9 @@ int main(int argc, char *argv[]) {
     auto demon_algo = Demon(epsilon, min_community_size, graph_ptr, max_iteration);
 
     demon_algo.ExecuteDaemon();
-    cout << demon_algo.overlap_community_vec_ << endl;
+
+    auto &arr_2d = demon_algo.overlap_community_vec_;
+    auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
+    cout << "idx result:" << arr_2d << endl;
+    cout << "name result:" << name_arr_2d << endl;
 }

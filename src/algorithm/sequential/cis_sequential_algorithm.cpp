@@ -41,7 +41,7 @@ namespace yche {
                               EntityDict &member_dict, EntityDict &neighbor_dict,
                               property_map<Graph, vertex_index_t>::type &vertex_index_map,
                               property_map<Graph, edge_weight_t>::type &edge_weight_map) {
-        EntityIdxSet neighbor_indices;
+        auto neighbor_indices = EntityIdxSet();
 
         for (auto &seed_vertex_index :seed) {
             community.member_indices_.emplace(seed_vertex_index);

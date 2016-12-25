@@ -69,17 +69,16 @@ namespace yche {
                                   property_map<SubGraph, vertex_weight_t>::type &sub_vertex_weight_map,
                                   property_map<SubGraph, vertex_label_t>::type &sub_vertex_label_map);
 
-        CommunityVec GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, int curr_index_indicator);
+        CommunityVec GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, int curr_label_idx);
 
         CommunityVec PropagateLabel(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex);
 
-        double GetIntersectRatio(Community &left_community, Community &right_community);
+        double GetIntersectRatio(Community &left_community, Community &right_community) const;
 
-        Community GetUnion(Community &left_community, Community &right_community);
+        Community GetUnion(Community &left_community, Community &right_community) const;
 
         void MergeToGlobal(CommunityVec &result);
     };
 }
-
 
 #endif //CODES_YCHE_DEMON_SEQUENTIAL_ALGORITHM_H
