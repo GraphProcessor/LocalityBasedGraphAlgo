@@ -12,10 +12,10 @@ using Vertex=Cis::Vertex;
 using Graph=Cis::Graph;
 using namespace std;
 
-void ConstructGraph(unique_ptr<Graph> &graph_ptr, unordered_map<int, Vertex> &vertex_dict,
-                    unordered_map<int, int> &name_dict, vector<Edge> &edges_vec) {
+unique_ptr<Graph> ConstructGraph(unordered_map<int, Vertex> &vertex_dict,
+                                 unordered_map<int, int> &name_dict, vector<Edge> &edges_vec) {
+    auto graph_ptr = make_unique<Graph>();
     auto edge_weight_map = boost::get(boost::edge_weight, *graph_ptr);
-    cout << '\n';
     for (auto &my_edge : edges_vec) {
         if (vertex_dict.find(my_edge.src_index_) == vertex_dict.end()) {
             Vertex vertex = boost::add_vertex(*graph_ptr);
@@ -38,18 +38,18 @@ void ConstructGraph(unique_ptr<Graph> &graph_ptr, unordered_map<int, Vertex> &ve
     for (auto iter = vertex_dict.begin(); iter != vertex_dict.end(); ++iter) {
         name_dict.emplace(vertex_index_map[iter->second], iter->first);
     }
+    return graph_ptr;
 }
 
 int main(int argc, char *argv[]) {
     auto edges_vec = yche::ReadWeightedEdgeList(argv[1]);
 
-    auto graph_ptr = make_unique<Graph>();
     auto vertex_dict = unordered_map<int, Vertex>();
     auto name_dict = unordered_map<int, int>();
-    ConstructGraph(graph_ptr, vertex_dict, name_dict, edges_vec);
+    auto graph_ptr = ConstructGraph(vertex_dict, name_dict, edges_vec);
 
     auto cis = Cis(graph_ptr, 0);
     cis.ExecuteCis();
-    cout << cis.overlap_community_vec_ << endl;
+    cout << "result:" << cis.overlap_community_vec_ << endl;
     return 0;
 }

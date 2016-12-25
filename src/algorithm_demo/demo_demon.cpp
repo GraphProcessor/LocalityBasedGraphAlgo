@@ -11,39 +11,40 @@ using yche::Demon;
 using Graph=Demon::Graph;
 using Vertex=Demon::Vertex;
 
-void ConstructGraphWithEdgeVecForDemon(unique_ptr<Graph> &graph_ptr, map<int, Vertex> &name_vertex_map,
-                                       map<int, int> &index_name_map, vector<pair<int, int>> &edges_vec) {
+unique_ptr<Graph> ConstructGraph(map<int, Vertex> &name_vertex_map, map<int, int> &index_name_map,
+                                 vector<pair<int, int>> &edges_vec) {
+    auto graph_ptr = make_unique<Graph>();
     auto vertex_weight_map = boost::get(boost::vertex_weight, *graph_ptr);
-    for (auto iter = edges_vec.begin(); iter != edges_vec.end(); ++iter) {
-        if (name_vertex_map.find(iter->first) == name_vertex_map.end()) {
+    for (auto &edge:edges_vec) {
+        if (name_vertex_map.find(edge.first) == name_vertex_map.end()) {
             Vertex vertex = add_vertex(*graph_ptr);
             vertex_weight_map[vertex] = 1;
-            name_vertex_map.insert(make_pair(iter->first, vertex));
+            name_vertex_map.insert(make_pair(edge.first, vertex));
         }
-        if (name_vertex_map.find(iter->second) == name_vertex_map.end()) {
+        if (name_vertex_map.find(edge.second) == name_vertex_map.end()) {
             Vertex vertex = add_vertex(*graph_ptr);
             vertex_weight_map[vertex] = 1;
-            name_vertex_map.insert(make_pair(iter->second, vertex));
+            name_vertex_map.insert(make_pair(edge.second, vertex));
         }
-        add_edge(name_vertex_map[iter->first], name_vertex_map[iter->second], *graph_ptr);
+        add_edge(name_vertex_map[edge.first], name_vertex_map[edge.second], *graph_ptr);
     }
 
     auto vertex_index_map = boost::get(boost::vertex_index, *graph_ptr);
-    for (auto iter = name_vertex_map.begin(); iter != name_vertex_map.end(); ++iter) {
-        index_name_map.insert(make_pair(vertex_index_map[iter->second], iter->first));
+    for (auto &name_vertex:name_vertex_map) {
+        index_name_map.emplace(vertex_index_map[name_vertex.second], name_vertex.first);
     }
+    return graph_ptr;
 }
 
 int main(int argc, char *argv[]) {
     auto edges_vec = yche::ReadEdgeList(argv[1]);
 
-    auto graph_ptr = make_unique<Graph>();
-    map<int, Vertex> name_vertex_map;
-    map<int, int> index_name_map;
-    ConstructGraphWithEdgeVecForDemon(graph_ptr, name_vertex_map, index_name_map, edges_vec);
+    map<int, Vertex> vertex_dict;
+    map<int, int> name_dict;
+    auto graph_ptr = ConstructGraph(vertex_dict, name_dict, edges_vec);
 
     auto epsilon = 0.25;
-    auto min_community_size = 3;
+    auto min_community_size = 1;
     auto max_iteration = 100;
     auto demon_algo = Demon(epsilon, min_community_size, graph_ptr, max_iteration);
 

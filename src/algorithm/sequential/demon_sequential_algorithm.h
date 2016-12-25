@@ -5,12 +5,14 @@
 #ifndef CODES_YCHE_DEMON_SEQUENTIAL_ALGORITHM_H
 #define CODES_YCHE_DEMON_SEQUENTIAL_ALGORITHM_H
 
-#include <boost/graph/adjacency_list.hpp>
 #include <memory>
 #include <vector>
 #include <random>
 #include <iostream>
 
+#include <boost/graph/adjacency_list.hpp>
+
+#include "util/pretty_print.h"
 
 namespace boost {
     enum vertex_weight_t {

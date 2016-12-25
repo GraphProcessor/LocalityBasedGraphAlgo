@@ -5,13 +5,14 @@
 #ifndef CODES_YCHE_CIS_SEQUENTIAL_ALGORITHM_H
 #define CODES_YCHE_CIS_SEQUENTIAL_ALGORITHM_H
 
-#include <boost/graph/adjacency_list.hpp>
 #include <unordered_set>
 #include <unordered_map>
 #include <queue>
 #include <vector>
 #include <limits>
 #include <iostream>
+
+#include <boost/graph/adjacency_list.hpp>
 
 #include "util/pretty_print.h"
 

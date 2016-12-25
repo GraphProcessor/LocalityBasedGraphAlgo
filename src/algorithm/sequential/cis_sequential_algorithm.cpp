@@ -47,7 +47,7 @@ namespace yche {
             community.member_indices_.emplace(seed_vertex_index);
 
             auto member = Entity(seed_vertex_index);
-            Vertex seed_vertex = vertices_[seed_vertex_index];
+            auto seed_vertex = vertices_[seed_vertex_index];
             for (auto vp = adjacent_vertices(seed_vertex, *graph_ptr_); vp.first != vp.second; ++vp.first) {
                 auto adjacent_vertex_index = static_cast<int>(vertex_index_map[*vp.first]);
                 auto edge_weight = edge_weight_map[edge(seed_vertex, vertices_[adjacent_vertex_index],
@@ -204,8 +204,8 @@ namespace yche {
     Community Cis::SplitAndChoose(EntityIdxSet &member_set) {
         auto community_vec = vector<Community>();
         auto mark_set = std::unordered_set<int>();
-        property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
-        property_map<Graph, edge_weight_t>::type edge_weight_map = boost::get(edge_weight, *graph_ptr_);
+        auto vertex_index_map = boost::get(vertex_index, *graph_ptr_);
+        auto edge_weight_map = boost::get(edge_weight, *graph_ptr_);
 
         while (member_set.size() > 0) {
             auto first_mem_idx = *member_set.begin();
@@ -228,12 +228,13 @@ namespace yche {
 
     EntityIdxVec Cis::ExpandSeed(EntityIdxSet &entity_idx_set) {
         auto community = Community();
-        EntityDict member_dict;
-        EntityDict neighbor_dict;
-        property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
-        property_map<Graph, edge_weight_t>::type edge_weight_map = boost::get(edge_weight, *graph_ptr_);
+        auto member_dict = EntityDict();
+        auto neighbor_dict = EntityDict();
+        auto vertex_index_map = boost::get(vertex_index, *graph_ptr_);
+        auto edge_weight_map = boost::get(edge_weight, *graph_ptr_);
+
         InitializeSeeds(entity_idx_set, community, member_dict, neighbor_dict, vertex_index_map, edge_weight_map);
-        bool change_flag = true;
+        auto change_flag = true;
         auto degree_cmp_obj = [this](auto &left_member, auto &right_member) {
             return degree(this->vertices_[left_member.entity_index_], *this->graph_ptr_) <
                    degree(this->vertices_[right_member.entity_index_], *this->graph_ptr_);
@@ -264,7 +265,7 @@ namespace yche {
         auto iter_end = set_intersection(left_community.begin(), left_community.end(),
                                          right_community.begin(), right_community.end(), intersect_set.begin());
         auto intersect_set_size = iter_end - intersect_set.begin();
-        double rate = static_cast<double>(intersect_set_size) / min(left_community.size(), right_community.size());
+        auto rate = static_cast<double>(intersect_set_size) / min(left_community.size(), right_community.size());
         return rate;
     }
 
@@ -280,7 +281,7 @@ namespace yche {
         if (overlap_community_vec_.size() == 0) {
             overlap_community_vec_.emplace_back(std::move(result_community));
         } else {
-            bool is_insert = true;
+            auto is_insert = true;
             for (auto &community:overlap_community_vec_) {
                 auto cover_rate = GetIntersectRatio(community, result_community);
                 if (cover_rate > 1 - DOUBLE_ACCURACY) {
@@ -297,7 +298,7 @@ namespace yche {
 
     Cis::OverlappingCommunityVec Cis::ExecuteCis() {
         auto community_vec = OverlappingCommunityVec();
-        property_map<Graph, vertex_index_t>::type vertex_index_map = boost::get(vertex_index, *graph_ptr_);
+        auto vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             Vertex vertex = *vp.first;
             auto partial_comm_members = EntityIdxSet();
