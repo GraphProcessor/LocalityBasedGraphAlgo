@@ -16,7 +16,6 @@
 
 #include "util/pretty_print.h"
 
-
 namespace yche {
     using namespace std;
     using namespace boost;
@@ -78,7 +77,6 @@ namespace yche {
         using VertexProperties = property<vertex_index_t, int>;
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
-        using Edge = graph_traits<Graph>::edge_descriptor;
         using CommunityVec=vector<EntityIdxVec>;
 
         CommunityVec overlap_community_vec_;
