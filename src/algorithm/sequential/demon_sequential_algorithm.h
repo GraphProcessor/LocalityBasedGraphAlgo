@@ -64,8 +64,8 @@ namespace yche {
 
         unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex &ego_vertex) const;
 
-        void PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_Vertex,
-                                  mt19937 &rand_generator, int last_index_indicator, int curr_index_indicator,
+        void PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_vertex,
+                                  mt19937 &rand_generator, int last_label_idx, int curr_label_idx,
                                   property_map<SubGraph, vertex_weight_t>::type &sub_vertex_weight_map,
                                   property_map<SubGraph, vertex_label_t>::type &sub_vertex_label_map);
 

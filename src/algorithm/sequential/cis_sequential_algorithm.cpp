@@ -234,28 +234,27 @@ namespace yche {
         auto edge_weight_map = boost::get(edge_weight, *graph_ptr_);
 
         InitializeSeeds(entity_idx_set, community, member_dict, neighbor_dict, vertex_index_map, edge_weight_map);
-        auto change_flag = true;
+
         auto degree_cmp_obj = [this](auto &left_member, auto &right_member) {
             return degree(this->vertices_[left_member.entity_index_], *this->graph_ptr_) <
                    degree(this->vertices_[right_member.entity_index_], *this->graph_ptr_);
         };
 
-        while (change_flag) {
-            change_flag = false;
+        for (auto is_change = true; is_change;) {
+            is_change = false;
             vector<Entity> to_check_list;
             MutateStates(MutationType::add_neighbor, to_check_list, community, member_dict, neighbor_dict,
-                         degree_cmp_obj, change_flag, vertex_index_map, edge_weight_map);
+                         degree_cmp_obj, is_change, vertex_index_map, edge_weight_map);
             MutateStates(MutationType::remove_member, to_check_list, community, neighbor_dict, member_dict,
-                         degree_cmp_obj, change_flag, vertex_index_map, edge_weight_map);
+                         degree_cmp_obj, is_change, vertex_index_map, edge_weight_map);
             community = SplitAndChoose(community.member_indices_);
+
         }
 
         //For Later Merge Usage
         auto member_vec = EntityIdxVec();
         member_vec.reserve(community.member_indices_.size());
-        for (auto entity_index:community.member_indices_) {
-            member_vec.emplace_back(entity_index);
-        }
+        for (auto entity_index:community.member_indices_) { member_vec.emplace_back(entity_index); }
         sort(member_vec.begin(), member_vec.end());
         return member_vec;
     }
@@ -296,8 +295,8 @@ namespace yche {
         }
     }
 
-    Cis::OverlappingCommunityVec Cis::ExecuteCis() {
-        auto community_vec = OverlappingCommunityVec();
+    Cis::CommunityVec Cis::ExecuteCis() {
+        auto community_vec = CommunityVec();
         auto vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             Vertex vertex = *vp.first;

@@ -79,13 +79,13 @@ namespace yche {
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
         using Edge = graph_traits<Graph>::edge_descriptor;
-        using OverlappingCommunityVec=vector<EntityIdxVec>;
+        using CommunityVec=vector<EntityIdxVec>;
 
-        OverlappingCommunityVec overlap_community_vec_;
+        CommunityVec overlap_community_vec_;
 
         Cis(unique_ptr<Graph> &graph_ptr, double lambda);
 
-        OverlappingCommunityVec ExecuteCis();
+        CommunityVec ExecuteCis();
 
 
     private:

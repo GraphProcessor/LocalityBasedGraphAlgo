@@ -45,16 +45,16 @@ namespace yche {
         return ego_net_ptr;
     }
 
-    void Demon::PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_Vertex,
-                                     std::mt19937 &rand_generator, int last_index_indicator, int curr_index_indicator,
+    void Demon::PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_vertex,
+                                     std::mt19937 &rand_generator, int last_label_idx, int curr_label_idx,
                                      property_map<SubGraph, vertex_weight_t>::type &sub_vertex_weight_map,
                                      property_map<SubGraph, vertex_label_t>::type &sub_vertex_label_map) {
         auto label_weight_map = map<int, double>();
         //Label Propagation
-        for (auto vp_inner = adjacent_vertices(sub_graph_Vertex, *sub_graph_ptr);
+        for (auto vp_inner = adjacent_vertices(sub_graph_vertex, *sub_graph_ptr);
              vp_inner.first != vp_inner.second; ++vp_inner.first) {
             auto neighbor_vertex = *vp_inner.first;
-            auto neighbor_vertex_label = sub_vertex_label_map[neighbor_vertex][last_index_indicator];
+            auto neighbor_vertex_label = sub_vertex_label_map[neighbor_vertex][last_label_idx];
             auto neighbor_vertex_weight = sub_vertex_weight_map[neighbor_vertex];
 
             auto my_iterator = label_weight_map.find(neighbor_vertex_label);
@@ -68,9 +68,8 @@ namespace yche {
         //Find Maximum Vote
         auto candidate_label_vec = vector<int>();
         auto max_val = 0.0;
-        auto current_vertex = sub_graph_Vertex;
         if (label_weight_map.size() == 0) {
-            sub_vertex_label_map[current_vertex][curr_index_indicator] = sub_vertex_label_map[current_vertex][last_index_indicator];
+            sub_vertex_label_map[sub_graph_vertex][curr_label_idx] = sub_vertex_label_map[sub_graph_vertex][last_label_idx];
         } else {
             for (auto label_to_weight_pair:label_weight_map) {
                 auto label_weight = label_to_weight_pair.second;
@@ -88,7 +87,7 @@ namespace yche {
                 auto distribution = uniform_int_distribution<>(0, static_cast<int>((candidate_label_vec.size() - 1)));
                 choice_index = distribution(rand_generator);
             }
-            sub_vertex_label_map[current_vertex][curr_index_indicator] = candidate_label_vec[choice_index];
+            sub_vertex_label_map[sub_graph_vertex][curr_label_idx] = candidate_label_vec[choice_index];
         }
     }
 
@@ -134,13 +133,13 @@ namespace yche {
         auto curr_label_idx = 1;
 
         for (auto iter_num = 0; iter_num < max_iter_; iter_num++) {
-            auto all_sub_vertices = vector<SubGraphVertex>();
+            auto sub_vertices = vector<SubGraphVertex>();
             for (auto vp = vertices(*sub_graph_ptr); vp.first != vp.second; ++vp.first) {
-                all_sub_vertices.emplace_back(*vp.first);
+                sub_vertices.emplace_back(*vp.first);
             }
-            shuffle(all_sub_vertices.begin(), all_sub_vertices.end(), rand_generator);
-            for (auto vertex_iter = all_sub_vertices.begin(); vertex_iter != all_sub_vertices.end(); ++vertex_iter) {
-                PropagateLabelSingle(sub_graph_ptr, *vertex_iter, rand_generator, last_label_idx,
+            shuffle(sub_vertices.begin(), sub_vertices.end(), rand_generator);
+            for (auto &sub_vertex:sub_vertices) {
+                PropagateLabelSingle(sub_graph_ptr, sub_vertex, rand_generator, last_label_idx,
                                      curr_label_idx, sub_vertex_weight_map, sub_vertex_label_map);
             }
             swap(last_label_idx, curr_label_idx);
