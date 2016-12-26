@@ -27,7 +27,10 @@ unique_ptr<Graph> ConstructGraph(map<int, Vertex> &name_vertex_map, map<int, int
             vertex_weight_map[vertex] = 1;
             name_vertex_map.insert(make_pair(edge.second, vertex));
         }
-        add_edge(name_vertex_map[edge.first], name_vertex_map[edge.second], *graph_ptr);
+        auto edge_flag_pair = add_edge(name_vertex_map[edge.first], name_vertex_map[edge.second], *graph_ptr);
+        if (edge_flag_pair.second) {
+            cout << "edge:" << edge_flag_pair.first << endl;
+        }
     }
 
     auto vertex_index_map = boost::get(boost::vertex_index, *graph_ptr);
@@ -40,8 +43,8 @@ unique_ptr<Graph> ConstructGraph(map<int, Vertex> &name_vertex_map, map<int, int
 int main(int argc, char *argv[]) {
     auto edges_vec = yche::ReadEdgeList(argv[1]);
 
-    map<int, Vertex> vertex_dict;
-    map<int, int> name_dict;
+    auto vertex_dict = map<int, Vertex>();
+    auto name_dict = map<int, int>();
     auto graph_ptr = ConstructGraph(vertex_dict, name_dict, edges_vec);
 
     auto epsilon = 0.25;
@@ -50,9 +53,9 @@ int main(int argc, char *argv[]) {
     auto demon_algo = Demon(epsilon, min_community_size, graph_ptr, max_iteration);
 
     demon_algo.ExecuteDaemon();
-
     auto &arr_2d = demon_algo.overlap_community_vec_;
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
+
     cout << "idx result:" << arr_2d << endl;
     cout << "name result:" << name_arr_2d << endl;
     cout << "comm size:" << name_arr_2d.size() << endl;

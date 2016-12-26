@@ -27,11 +27,9 @@ unique_ptr<Graph> ConstructGraph(unordered_map<int, Vertex> &vertex_dict,
             Vertex vertex = boost::add_vertex(*graph_ptr);
             vertex_dict.emplace(my_edge.dst_index_, vertex);
         }
-        auto edge = Cis::Edge();
-        auto flag = false;
-        tie(edge, flag) = add_edge(vertex_dict[my_edge.src_index_], vertex_dict[my_edge.dst_index_], *graph_ptr);
-        if (flag) {
-            edge_weight_map[edge] = my_edge.edge_weight_;
+        auto edge_flag_pair = add_edge(vertex_dict[my_edge.src_index_], vertex_dict[my_edge.dst_index_], *graph_ptr);
+        if (edge_flag_pair.second) {
+            edge_weight_map[edge_flag_pair.first] = my_edge.edge_weight_;
             cout << my_edge;
         }
     }
@@ -51,10 +49,11 @@ int main(int argc, char *argv[]) {
     auto graph_ptr = ConstructGraph(vertex_dict, name_dict, edges_vec);
 
     auto cis = Cis(graph_ptr, 0);
-    cis.ExecuteCis();
 
+    cis.ExecuteCis();
     auto &arr_2d = cis.overlap_community_vec_;
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
+
     cout << "idx result:" << arr_2d << endl;
     cout << "name result:" << name_arr_2d << endl;
     cout << "comm size:" << name_arr_2d.size() << endl;

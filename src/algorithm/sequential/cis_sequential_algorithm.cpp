@@ -81,8 +81,7 @@ namespace yche {
         }
     }
 
-    void Cis::UpdateForAddNeighbor(const Cis::Vertex &mutate_vertex,
-                                   Community &community,
+    void Cis::UpdateForAddNeighbor(const Cis::Vertex &mutate_vertex, Community &community,
                                    EntityDict &member_dict, EntityDict &neighbor_dict,
                                    property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                    property_map<Graph, edge_weight_t>::type &edge_weight_map) {
@@ -174,8 +173,6 @@ namespace yche {
         frontier.emplace(first_mem_idx);
         mark_set.emplace(first_mem_idx);
         while (frontier.size() > 0) {
-            Edge edge;
-            bool edge_exist_flag;
             auto expand_vertex_index = frontier.front();
             auto expand_vertex = vertices_[expand_vertex_index];
 
@@ -184,15 +181,16 @@ namespace yche {
                  vp.first != vp.second; ++vp.first) {
                 auto neighbor_vertex = *vp.first;
                 auto adjacency_vertex_index = static_cast<int>(vertex_index_map[neighbor_vertex]);
-                tie(edge, edge_exist_flag) = boost::edge(expand_vertex, neighbor_vertex, *graph_ptr_);
+                auto edge_flag_pair = boost::edge(expand_vertex, neighbor_vertex, *graph_ptr_);
+                auto &my_edge = edge_flag_pair.first;
 
                 auto iter = member_set.find(adjacency_vertex_index);
                 if (mark_set.find(adjacency_vertex_index) == mark_set.end() && iter != member_set.end()) {
-                    community.w_in_ += edge_weight_map[edge];
+                    community.w_in_ += edge_weight_map[my_edge];
                     frontier.emplace(adjacency_vertex_index);
                     mark_set.emplace(adjacency_vertex_index);
                 } else {
-                    community.w_out_ = edge_weight_map[edge];
+                    community.w_out_ = edge_weight_map[my_edge];
                 }
             }
             member_set.erase(expand_vertex_index);
@@ -299,7 +297,7 @@ namespace yche {
         auto community_vec = CommunityVec();
         auto vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
-            Vertex vertex = *vp.first;
+            auto vertex = *vp.first;
             auto partial_comm_members = EntityIdxSet();
             partial_comm_members.emplace(vertex_index_map[vertex]);
             auto result_community = ExpandSeed(partial_comm_members);
