@@ -55,4 +55,5 @@ int main(int argc, char *argv[]) {
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
     cout << "idx result:" << arr_2d << endl;
     cout << "name result:" << name_arr_2d << endl;
+    cout << "comm size:" << name_arr_2d.size() << endl;
 }

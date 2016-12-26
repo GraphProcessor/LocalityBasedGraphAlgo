@@ -41,7 +41,7 @@ namespace yche {
 
                 auto first_vertex_name = -1;
                 auto second_vertex_name = -1;
-                auto edge_weight = -1.0;
+                auto edge_weight = 1.0;
                 auto string_stream = stringstream(s);
                 string_stream >> first_vertex_name >> second_vertex_name >> edge_weight;
                 edges_vec.emplace_back(first_vertex_name, second_vertex_name, edge_weight);
