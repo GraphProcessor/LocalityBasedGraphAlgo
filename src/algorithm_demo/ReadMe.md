@@ -34,7 +34,7 @@ comm size:2
 ```
 
 ##Algorithm Implementation Codes
-- see [algorithm](algorithm)
+- see [../algorithm](../algorithm)
 
 
 ##Entry Source Codes
