@@ -16,8 +16,8 @@ set(ParallelUtilFiles parallel_utils/detail/dataflow_scheduler.h parallel_utils/
         parallel_utils/detail/fine_grained_merge_scheduler.h parallel_utils/parallel_configuration.h
         parallel_utils/detail/thread_pool_breakable.h parallel_utils/detail/thread_pool_base.h)
 set(GraphIOUtilFiles util/graph_io_helper.h)
-set(DemonFiles algorithm_runner/test_demon.cpp algorithm/parallel/demon_algorithm.cpp algorithm/parallel/demon_algorithm.h)
-set(CISFiles algorithm_runner/test_cis.cpp algorithm/parallel/cis_algorithm.cpp algorithm/parallel/cis_algorithm.h algorithm/sequential/cis_sequential_algorithm.cpp algorithm/sequential/cis_sequential_algorithm.h)
+set(DemonFiles parallel_algorithm_runner/test_demon.cpp algorithm/parallel/demon_algorithm.cpp algorithm/parallel/demon_algorithm.h)
+set(CISFiles parallel_algorithm_runner/test_cis.cpp algorithm/parallel/cis_algorithm.cpp algorithm/parallel/cis_algorithm.h algorithm/sequential/cis_sequential_algorithm.cpp algorithm/sequential/cis_sequential_algorithm.h)
 
 add_executable(DemonAlgo ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles})
 target_link_libraries(DemonAlgo ${CMAKE_THREAD_LIBS_INIT})
