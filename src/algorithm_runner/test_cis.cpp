@@ -2,7 +2,7 @@
 // Created by cheyulin on 4/18/16.
 //
 
-#include "algorithm/cis_algorithm.h"
+#include "algorithm/parallel/cis_algorithm.h"
 #include "parallel_utils/dataflow_scheduler.h"
 #include "input_output_handler.h"
 
