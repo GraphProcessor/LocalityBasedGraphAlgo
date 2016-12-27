@@ -13,7 +13,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "parallel_configuration.h"
+#include "parallel_utils/parallel_configuration.h"
 
 namespace yche {
     using namespace std;

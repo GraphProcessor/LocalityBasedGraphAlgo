@@ -12,7 +12,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 
-#include "parallel_configuration.h"
+#include "parallel_utils/parallel_configuration.h"
 #include "thread_pool_breakable.h"
 
 using namespace std;

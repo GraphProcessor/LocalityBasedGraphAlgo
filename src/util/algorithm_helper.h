@@ -5,8 +5,8 @@
 #ifndef CODES_YCHE_ALGORITHM_HELPER_H
 #define CODES_YCHE_ALGORITHM_HELPER_H
 
-#include "parallel_utils/dataflow_scheduler.h"
-#include "parallel_utils/reduce_scheduler.h"
+#include "parallel_utils/detail/dataflow_scheduler.h"
+#include "parallel_utils/detail/reduce_scheduler.h"
 
 namespace yche {
     template<typename Algorithm>

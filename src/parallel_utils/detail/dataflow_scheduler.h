@@ -5,7 +5,7 @@
 #ifndef CODES_YCHE_PARALLELIZER_H
 #define CODES_YCHE_PARALLELIZER_H
 
-#include "parallel_configuration.h"
+#include "parallel_utils/parallel_configuration.h"
 
 #ifdef FINE_GRAINED_REDUCE_ENABLE
 

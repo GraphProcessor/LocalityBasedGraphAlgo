@@ -12,9 +12,9 @@ message(${CMAKE_THREAD_LIBS_INIT})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(".")
 
-set(ParallelUtilFiles parallel_utils/dataflow_scheduler.h parallel_utils/reduce_scheduler.h
-        parallel_utils/fine_grained_merge_scheduler.h parallel_utils/parallel_configuration.h
-        parallel_utils/thread_pool_breakable.h parallel_utils/thread_pool_base.h)
+set(ParallelUtilFiles parallel_utils/detail/dataflow_scheduler.h parallel_utils/detail/reduce_scheduler.h
+        parallel_utils/detail/fine_grained_merge_scheduler.h parallel_utils/parallel_configuration.h
+        parallel_utils/detail/thread_pool_breakable.h parallel_utils/detail/thread_pool_base.h)
 set(GraphIOUtilFiles util/graph_io_helper.h)
 set(DemonFiles algorithm_runner/test_demon.cpp algorithm/parallel/demon_algorithm.cpp algorithm/parallel/demon_algorithm.h)
 set(CISFiles algorithm_runner/test_cis.cpp algorithm/parallel/cis_algorithm.cpp algorithm/parallel/cis_algorithm.h algorithm/sequential/cis_sequential_algorithm.cpp algorithm/sequential/cis_sequential_algorithm.h)
