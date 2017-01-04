@@ -5,12 +5,14 @@
 #ifndef CODES_YCHE_FINE_GRAINED_MERGE_SCHEDULER_H
 #define CODES_YCHE_FINE_GRAINED_MERGE_SCHEDULER_H
 
-#include <boost/range.hpp>
+#include <semaphore.h>
+#include <pthread.h>
+
 #include <memory>
 #include <vector>
 #include <iostream>
-#include <semaphore.h>
-#include <pthread.h>
+
+#include <boost/range.hpp>
 
 #include "parallel_utils/parallel_configuration.h"
 #include "thread_pool_breakable.h"
@@ -72,9 +74,10 @@ namespace yche {
             for (auto &right_element_ptr:*reduce_data_ptr_vector_[0]) {
                 std::function<BreakWithCallBackRetType(void)> task_function = [&right_element_ptr, this]() {
                     if (this->pair_computation_func_(this->left_element_ptr_, right_element_ptr)) {
-                        return BreakWithCallBackRetType(true, std::bind(this->success_action_func_,
-                                                                        std::ref(this->left_element_ptr_),
-                                                                        std::ref(right_element_ptr)));
+                        return BreakWithCallBackRetType(true, []() {
+                            this->success_action_func_(this->left_element_ptr_, right_element_ptr);
+                        });
+
                     } else
                         return BreakWithCallBackRetType();
                 };

@@ -5,9 +5,10 @@
 #ifndef CODES_YCHE_THREAD_POOL_H
 #define CODES_YCHE_THREAD_POOL_H
 
+#include <list>
+
 #include <boost/thread.hpp>
 #include <boost/thread/lock_factories.hpp>
-#include <list>
 
 using namespace boost;
 using std::list;

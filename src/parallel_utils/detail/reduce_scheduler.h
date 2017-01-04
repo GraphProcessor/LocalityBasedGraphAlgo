@@ -7,7 +7,8 @@
 
 #include <semaphore.h>
 #include <pthread.h>
-#include <ctime>
+
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -48,10 +49,9 @@ namespace yche {
         }
     };
 
-    template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
+    template<typename Container, typename Data, typename DataCmpFunctionType, typename ComputationFunctionType>
     class ReduceScheduler {
     private:
-
         struct BundleInput {
             ReduceScheduler *reducer_ptr_;
             unsigned long thread_id_;
@@ -63,8 +63,8 @@ namespace yche {
         pthread_t *thread_handles_;
 
         using IndexType = unsigned long;
-        vector<unique_ptr<DataType>> first_phase_reduce_data_pool_vec_;
-        vector<unique_ptr<DataType>> second_phase_global_reduce_data_vector;
+        vector<unique_ptr<Data>> first_phase_reduce_data_pool_vec_;
+        vector<unique_ptr<Data>> second_phase_global_reduce_data_vector;
         vector<ReduceTaskIndices<IndexType>> reduce_data_indices_vec_;
         vector<bool> is_rec_mail_empty_;
 
@@ -87,13 +87,13 @@ namespace yche {
 
         static void *InvokeRingCommThreadFunction(void *bundle_input_ptr);
 
-        void InitDataPerThread(DataCollectionType &data_collection);
+        void InitDataPerThread(Container &data_collection);
 
     public:
 
-        unique_ptr<DataType> ParallelExecute();
+        unique_ptr<Data> ParallelExecute();
 
-        ReduceScheduler(unsigned long thread_count, DataCollectionType &reduce_data_collection,
+        ReduceScheduler(unsigned long thread_count, Container &reduce_data_collection,
                         DataCmpFunctionType data_cmp_function,
                         ComputationFunctionType compute_function)
                 : thread_count_(thread_count), data_cmp_function_(data_cmp_function),
@@ -191,9 +191,10 @@ namespace yche {
         auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
         auto &local_reduce_data_indices = reduce_data_indices_vec_[thread_index];
 
-        struct timespec begin, end;
+        using namespace std::chrono;
+        time_point<high_resolution_clock> start_time_point, end_time_point;
         if (thread_index == 0) {
-            clock_gettime(CLOCK_MONOTONIC, &begin);
+            start_time_point = high_resolution_clock::now();
         }
         if (thread_count_ < data_count_) {
             while (!is_end_of_loop_) {
@@ -308,19 +309,17 @@ namespace yche {
             }
         }
 
-        double elapsed;
         //Barrier
         pthread_barrier_wait(&timestamp_barrier_);
 
         if (thread_index == 0) {
-            clock_gettime(CLOCK_MONOTONIC, &end);
-            elapsed = end.tv_sec - begin.tv_sec;
-            elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-            cout << "Before Global Variable Task Acq In First-Phase Reduce:" << elapsed << endl;
+            end_time_point = high_resolution_clock::now();
+            auto duration_time = duration_cast<milliseconds>(end_time_point - start_time_point).count();
+            cout << "Before Global Variable Task Acq In First-Phase Reduce:" << duration_time << endl;
         }
 
 #ifndef REDUCE_2ND_PHASE_SEQUENTIAL
-        //Reduce DataType Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
+        //Reduce Data Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
         unique_ptr<DataType> result_data_ptr = std::move(
                 first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
@@ -332,7 +331,7 @@ namespace yche {
             pthread_mutex_lock(&task_taking_mutex_);
             //Send result to global vector
             second_phase_global_reduce_data_vector.push_back(std::move(result_data_ptr));
-            //Fetch DataType : Busy Worker
+            //Fetch Data : Busy Worker
             if (second_phase_global_reduce_data_vector.size() >= 2) {
                 result_data_ptr = std::move(second_phase_global_reduce_data_vector.back());
                 second_phase_global_reduce_data_vector.erase(second_phase_global_reduce_data_vector.end() - 1);

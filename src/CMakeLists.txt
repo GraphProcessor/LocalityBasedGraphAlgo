@@ -18,12 +18,13 @@ set(ParallelUtilFiles parallel_utils/detail/dataflow_scheduler.h parallel_utils/
 set(GraphIOUtilFiles util/graph_io_helper.h)
 set(DemonFiles parallel_algorithm_runner/test_demon.cpp algorithm/parallel/demon_algorithm.cpp algorithm/parallel/demon_algorithm.h)
 set(CISFiles parallel_algorithm_runner/test_cis.cpp algorithm/parallel/cis_algorithm.cpp algorithm/parallel/cis_algorithm.h algorithm/sequential/cis_sequential_algorithm.cpp algorithm/sequential/cis_sequential_algorithm.h)
+set(UtilFiles util/algorithm_helper.h util/basic_io_helper.h util/graph_io_helper.h util/pretty_print.h)
 
-add_executable(DemonAlgo ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles})
+add_executable(DemonAlgo ${ParallelUtilFiles} ${GraphIOUtilFiles} ${DemonFiles} ${UtilFiles})
 target_link_libraries(DemonAlgo ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(DemonAlgo ${Boost_LIBRARIES})
 
-add_executable(CISAlgo ${ParallelUtilFiles} ${GraphIOUtilFiles} ${CISFiles})
+add_executable(CISAlgo ${ParallelUtilFiles} ${GraphIOUtilFiles} ${CISFiles} ${UtilFiles})
 target_link_libraries(CISAlgo ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(CISAlgo ${Boost_LIBRARIES})
 

@@ -81,18 +81,16 @@ namespace yche {
 
     template<typename AlgorithmType>
     void DataFlowScheduler<AlgorithmType>::ParallelExecute() {
-        struct timespec begin, end;
-        double elapsed;
-        clock_gettime(CLOCK_MONOTONIC, &begin);
+        using namespace std::chrono;
+        time_point<high_resolution_clock> start, end;
+        start = high_resolution_clock::now();
         InitTasks();
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsed = end.tv_sec - begin.tv_sec;
-        elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-        cout << "Task Init Cost :" << elapsed << endl;
-        cout << "Finish Init" << endl;
-        cout << "Thread_count:" << thread_count_ << endl;
+        end = high_resolution_clock::now();
+        auto elapsed = duration_cast<milliseconds>(end - start).count();
+        cout << "Task Init Cost :" << elapsed << '\n' << "Thread_count:" << thread_count_ << endl;
 
         vector<BundleInput *> input_bundle_vec(thread_count_);
+
         for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
             input_bundle_vec[thread_id] = new BundleInput();
             input_bundle_vec[thread_id]->parallelizer_ptr_ = this;
@@ -111,10 +109,9 @@ namespace yche {
             delete input_bundle_vec[i];
         }
 
-        clock_gettime(CLOCK_MONOTONIC, &end);
-        elapsed = end.tv_sec - begin.tv_sec;
-        elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-        cout << "Elapsed Time " << elapsed << endl;
+        end = high_resolution_clock::now();
+        elapsed = duration_cast<milliseconds>(end - start).count();
+        cout << "Whole Elapsed Time " << elapsed << endl;
 
 
     }
@@ -240,7 +237,7 @@ namespace yche {
         }
 
         cout << "Before ReduceScheduler" << endl;
-        cout << "Reduce DataType Size:" << reduce_data_ptr_vec.size() << endl;
+        cout << "Reduce Data Size:" << reduce_data_ptr_vec.size() << endl;
 #ifndef FINE_GRAINED_REDUCE_ENABLE
         ReduceScheduler<decltype(reduce_data_ptr_vec), ReduceDataType, decltype(algorithm_ptr_->CmpReduceData), decltype(algorithm_ptr_->ReduceComputation)> reducer(
                 thread_count_, reduce_data_ptr_vec, algorithm_ptr_->CmpReduceData,
