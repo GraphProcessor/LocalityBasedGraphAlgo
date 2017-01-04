@@ -5,8 +5,7 @@
 #ifndef CODES_YCHE_REDUCER_H
 #define CODES_YCHE_REDUCER_H
 
-#include <semaphore.h>
-#include <pthread.h>
+#include <thread>
 
 #include <chrono>
 #include <iostream>
@@ -19,53 +18,35 @@
 namespace yche {
     using namespace std;
 
-    template<typename IndexType>
-    struct ReduceTaskIndices {
-        IndexType result_index_;
-        IndexType start_computation_index_;
-        IndexType end_computation_index_;
+    struct TaskIndices {
+        size_t res_idx_;
+        size_t beg_idx_;
+        size_t end_idx_;
 
-        void InitTaskIndices(IndexType global_start_index, IndexType global_end_index) {
-            result_index_ = global_start_index;
-            start_computation_index_ = global_start_index + 1;
-            end_computation_index_ = global_end_index;
+        TaskIndices(size_t beg_idx, size_t end_idx) : res_idx_(beg_idx), beg_idx_(beg_idx + 1), end_idx_(end_idx) {}
+
+        void Reschedule(size_t begin_idx, size_t end_idx) {
+            beg_idx_ = begin_idx;
+            end_idx_ = end_idx;
         }
 
-        void RescheduleTaskIndices(IndexType new_start_computation_index, IndexType new_end_computation_index) {
-            start_computation_index_ = new_start_computation_index;
-            end_computation_index_ = new_end_computation_index;
-        }
-
-        IndexType GetInitStartIndex() {
-            return result_index_;
-        }
-
-        IndexType GetInitEndIndex() {
-            return end_computation_index_;
-        }
-
-        IndexType GetReduceTaskSize() {
-            return end_computation_index_ - start_computation_index_ + 1;
+        size_t GetSize() {
+            return end_idx_ - beg_idx_ + 1;
         }
     };
 
-    template<typename Container, typename Data, typename DataCmpFunctionType, typename ComputationFunctionType>
-    class ReduceScheduler {
+    template<typename Container, typename Data, typename Predicate, typename Combiner>
+    class Reducer {
     private:
-        struct BundleInput {
-            ReduceScheduler *reducer_ptr_;
-            unsigned long thread_id_;
-        };
-
-        unsigned long thread_count_;
-        unsigned long data_count_;
-        unsigned long idle_count_;
+        size_t thread_count_;
+        size_t data_count_;
+        size_t idle_count_;
         pthread_t *thread_handles_;
 
-        using IndexType = unsigned long;
+        using size_t = size_t;
         vector<unique_ptr<Data>> first_phase_reduce_data_pool_vec_;
         vector<unique_ptr<Data>> second_phase_global_reduce_data_vector;
-        vector<ReduceTaskIndices<IndexType>> reduce_data_indices_vec_;
+        vector<TaskIndices<size_t>> reduce_data_indices_vec_;
         vector<bool> is_rec_mail_empty_;
 
         vector<sem_t> sem_mail_boxes_;
@@ -80,12 +61,10 @@ namespace yche {
         bool is_end_of_loop_;
         bool is_end_of_reduce_;
 
-        DataCmpFunctionType data_cmp_function_;
-        ComputationFunctionType reduce_compute_function_;
+        Predicate data_cmp_function_;
+        Combiner reduce_compute_function_;
 
-        void RingCommTaskStealAndRequestThreadFunction(unsigned long thread_id);
-
-        static void *InvokeRingCommThreadFunction(void *bundle_input_ptr);
+        void RingCommTaskStealAndRequestThreadFunction(size_t thread_id);
 
         void InitDataPerThread(Container &data_collection);
 
@@ -93,9 +72,9 @@ namespace yche {
 
         unique_ptr<Data> ParallelExecute();
 
-        ReduceScheduler(unsigned long thread_count, Container &reduce_data_collection,
-                        DataCmpFunctionType data_cmp_function,
-                        ComputationFunctionType compute_function)
+        Reducer(size_t thread_count, Container &reduce_data_collection,
+                Predicate data_cmp_function,
+                Combiner compute_function)
                 : thread_count_(thread_count), data_cmp_function_(data_cmp_function),
                   reduce_compute_function_(compute_function) {
             thread_handles_ = new pthread_t[thread_count_];
@@ -114,7 +93,6 @@ namespace yche {
             pthread_mutex_init(&task_taking_mutex_, NULL);
             pthread_mutex_init(&counter_mutex_lock_, NULL);
             pthread_cond_init(&task_taking_cond_var_, NULL);
-            reduce_data_indices_vec_.resize(thread_count_);
 
 
             is_end_of_loop_ = false;
@@ -127,7 +105,7 @@ namespace yche {
             InitDataPerThread(reduce_data_collection);
         }
 
-        virtual ~ReduceScheduler() {
+        virtual ~Reducer() {
             for (auto i = 0; i < thread_count_; i++) {
                 sem_destroy(&sem_mail_boxes_[i]);
             }
@@ -143,7 +121,7 @@ namespace yche {
     };
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
-    void ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InitDataPerThread(
+    void Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InitDataPerThread(
             DataCollectionType &data_collection) {
         data_count_ = data_collection.size();
         if (data_count_ == 1) {
@@ -152,48 +130,48 @@ namespace yche {
             return;
         }
         first_phase_reduce_data_pool_vec_.resize(data_collection.size());
-        int index = 0;
+        int idx = 0;
         for (auto &data:data_collection) {
-            first_phase_reduce_data_pool_vec_[index] = std::move(data);
-            index++;
+            first_phase_reduce_data_pool_vec_[idx] = std::move(data);
+            idx++;
         }
         auto task_per_thread = data_collection.size() / thread_count_;
         cout << task_per_thread << " tasks per thread" << endl;
 
-        //Average Partitioning Tasks
+        reduce_data_indices_vec_.reserve(thread_count_);
         for (auto i = 0; i < thread_count_ - 1; ++i) {
-            reduce_data_indices_vec_[i].InitTaskIndices(i * task_per_thread, (i + 1) * task_per_thread - 1);
+            reduce_data_indices_vec_.emplace(i * task_per_thread, (i + 1) * task_per_thread - 1);
         }
         reduce_data_indices_vec_[thread_count_ - 1].InitTaskIndices((thread_count_ - 1) * task_per_thread,
                                                                     data_collection.size() - 1);
         //Sort From Greatest to Least
         for (auto i = 0; i < thread_count_; i++) {
-            sort(first_phase_reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].GetInitStartIndex(),
-                 first_phase_reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].GetInitEndIndex(),
+            sort(first_phase_reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].beg_idx_,
+                 first_phase_reduce_data_pool_vec_.begin() + reduce_data_indices_vec_[i].end_idx_,
                  data_cmp_function_);
         }
         cout << "Reduce Task Init Finished" << endl;
 #ifdef DEBUG
         for (auto i = 0; i < thread_count_; ++i) {
-            cout << reduce_data_indices_vec_[i].result_index_ << ","
-                 << reduce_data_indices_vec_[i].start_computation_index_ << ","
-                 << reduce_data_indices_vec_[i].end_computation_index_ << endl;
+            cout << reduce_data_indices_vec_[i].res_idx_ << ","
+                 << reduce_data_indices_vec_[i].beg_idx_ << ","
+                 << reduce_data_indices_vec_[i].end_idx_ << endl;
         }
 #endif
     }
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
     void
-    ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::RingCommTaskStealAndRequestThreadFunction(
-            unsigned long thread_id) {
-        unsigned long thread_index = thread_id;
-        auto dst_index = (thread_index + 1) % thread_count_;
-        auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
-        auto &local_reduce_data_indices = reduce_data_indices_vec_[thread_index];
+    Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::RingCommTaskStealAndRequestThreadFunction(
+            size_t thread_id) {
+        size_t thread_idx = thread_id;
+        auto dst_idx = (thread_idx + 1) % thread_count_;
+        auto src_idx = (thread_idx - 1 + thread_count_) % thread_count_;
+        auto &local_reduce_data_indices = reduce_data_indices_vec_[thread_idx];
 
         using namespace std::chrono;
         time_point<high_resolution_clock> start_time_point, end_time_point;
-        if (thread_index == 0) {
+        if (thread_idx == 0) {
             start_time_point = high_resolution_clock::now();
         }
         if (thread_count_ < data_count_) {
@@ -221,43 +199,43 @@ namespace yche {
                         bool is_going_to_request = false;
 
 #ifdef STEAL_ENABLE
-                        pthread_mutex_lock(&check_indices_mutex_lock_vector_[dst_index]);
-                        auto available_task_num = reduce_data_indices_vec_[dst_index].GetReduceTaskSize();
+                        pthread_mutex_lock(&check_indices_mutex_lock_vector_[dst_idx]);
+                        auto available_task_num = reduce_data_indices_vec_[dst_idx].GetReduceTaskSize();
                         if (available_task_num == 0 ||
-                            (available_task_num == 1 && is_busy_working_[dst_index] == true)) {
+                            (available_task_num == 1 && is_busy_working_[dst_idx] == true)) {
                             is_going_to_request = true;
                         } else {
-                            if (is_busy_working_[dst_index]) {
+                            if (is_busy_working_[dst_idx]) {
                                 //Index Should Consider Dst Current Computation
-                                auto current_end_index = reduce_data_indices_vec_[dst_index].end_computation_index_-1;
-                                auto current_start_index = current_end_index - (reduce_data_size + 1) / 2 + 1;
-                                pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
-                                reduce_data_indices_vec_[thread_index].RescheduleTaskIndices(current_start_index,
-                                                                                             current_end_index);
-                                pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
-                                reduce_data_indices_vec_[dst_index].end_computation_index_=current_start_index;
+                                auto current_end_idx = reduce_data_indices_vec_[dst_idx].end_idx_-1;
+                                auto current_start_idx = current_end_idx - (reduce_data_size + 1) / 2 + 1;
+                                pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_idx]);
+                                reduce_data_indices_vec_[thread_idx].RescheduleTaskIndices(current_start_idx,
+                                                                                             current_end_idx);
+                                pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_idx]);
+                                reduce_data_indices_vec_[dst_idx].end_idx_=current_start_idx;
                             }
                             else {
                                 //Not Required to Consider Dst Current Computation, since it not enter critical section
-                                auto current_end_index = reduce_data_indices_vec_[dst_index].end_computation_index_;
-                                auto current_start_index = current_end_index - (reduce_data_size + 1) / 2 + 1;
-                                pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
-                                reduce_data_indices_vec_[thread_index].RescheduleTaskIndices(current_start_index,
-                                                                                             current_end_index);
-                                pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
-                                reduce_data_indices_vec_[dst_index].end_computation_index_=current_start_index-1;
+                                auto current_end_idx = reduce_data_indices_vec_[dst_idx].end_idx_;
+                                auto current_start_idx = current_end_idx - (reduce_data_size + 1) / 2 + 1;
+                                pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_idx]);
+                                reduce_data_indices_vec_[thread_idx].RescheduleTaskIndices(current_start_idx,
+                                                                                             current_end_idx);
+                                pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_idx]);
+                                reduce_data_indices_vec_[dst_idx].end_idx_=current_start_idx-1;
                             }
                             //Update Current Thread Index and Dst Index
                         }
-                        pthread_mutex_unlock(&check_indices_mutex_lock_vector_[dst_index]);
+                        pthread_mutex_unlock(&check_indices_mutex_lock_vector_[dst_idx]);
 
                         if (is_going_to_request) {
-                            is_rec_mail_empty_[dst_index] = false;
-                            sem_wait(&sem_mail_boxes_[dst_index]);
+                            is_rec_mail_empty_[dst_idx] = false;
+                            sem_wait(&sem_mail_boxes_[dst_idx]);
                         }
 #else
-                        is_rec_mail_empty_[dst_index] = false;
-                        sem_wait(&sem_mail_boxes_[dst_index]);
+                        is_rec_mail_empty_[dst_idx] = false;
+                        sem_wait(&sem_mail_boxes_[dst_idx]);
 #endif
                         if (is_end_of_loop_) {
                             break;
@@ -269,41 +247,41 @@ namespace yche {
                 } else {
                     if (reduce_data_size > 1) {
                         //Check Flag and Assign Tasks To Left Neighbor
-                        if (is_rec_mail_empty_[thread_index] == false) {
-                            auto neighbor_end_index = reduce_data_indices_vec_[thread_index].end_computation_index_;
-                            auto neighbor_start_index = neighbor_end_index - reduce_data_size / 2 + 1;
-                            reduce_data_indices_vec_[src_index].RescheduleTaskIndices(
-                                    neighbor_start_index, neighbor_end_index);
-                            local_reduce_data_indices.end_computation_index_ = neighbor_start_index - 1;
-                            is_rec_mail_empty_[thread_index] = true;
-                            sem_post(&sem_mail_boxes_[thread_index]);
+                        if (is_rec_mail_empty_[thread_idx] == false) {
+                            auto neighbor_end_idx = reduce_data_indices_vec_[thread_idx].end_computation_idx_;
+                            auto neighbor_start_idx = neighbor_end_idx - reduce_data_size / 2 + 1;
+                            reduce_data_indices_vec_[src_idx].RescheduleTaskIndices(
+                                    neighbor_start_idx, neighbor_end_idx);
+                            local_reduce_data_indices.end_computation_idx_ = neighbor_start_idx - 1;
+                            is_rec_mail_empty_[thread_idx] = true;
+                            sem_post(&sem_mail_boxes_[thread_idx]);
                         }
                     }
 
                     //To Avoid Enter into Computation when the neighbor is stealing
 #ifdef STEAL_ENABLE
-                    pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
-                    is_busy_working_[thread_index] = true;
+                    pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_idx]);
+                    is_busy_working_[thread_idx] = true;
                     //Task Has been Steal
                     if (local_reduce_data_indices.GetReduceTaskSize() == 0)
                     {
-                        is_busy_working_[thread_index]= false;
+                        is_busy_working_[thread_idx]= false;
                         continue;
                     }
-                    pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
+                    pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_idx]);
 #endif
                     //Do reduce computation, use the first max one and the last min one
-                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_] = std::move(
+                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_idx_] = std::move(
                             reduce_compute_function_(
-                                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_index_],
-                                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.end_computation_index_]));
+                                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.result_idx_],
+                                    first_phase_reduce_data_pool_vec_[local_reduce_data_indices.end_computation_idx_]));
 #ifdef STEAL_ENABLE
-                    pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_index]);
-                    is_busy_working_[thread_index] = false;
-                    local_reduce_data_indices.end_computation_index_--;
-                    pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_index]);
+                    pthread_mutex_lock(&check_indices_mutex_lock_vector_[thread_idx]);
+                    is_busy_working_[thread_idx] = false;
+                    local_reduce_data_indices.end_idx_--;
+                    pthread_mutex_unlock(&check_indices_mutex_lock_vector_[thread_idx]);
 #else
-                    local_reduce_data_indices.end_computation_index_--;
+                    local_reduce_data_indices.end_computation_idx_--;
 #endif
                 }
             }
@@ -312,7 +290,7 @@ namespace yche {
         //Barrier
         pthread_barrier_wait(&timestamp_barrier_);
 
-        if (thread_index == 0) {
+        if (thread_idx == 0) {
             end_time_point = high_resolution_clock::now();
             auto duration_time = duration_cast<milliseconds>(end_time_point - start_time_point).count();
             cout << "Before Global Variable Task Acq In First-Phase Reduce:" << duration_time << endl;
@@ -322,10 +300,10 @@ namespace yche {
         //Reduce Data Size Has become much larger in this phase, Maybe Need Fine-Grained Parallelism
         //Do left things, 1) send data back to global variable 2) use condition variable to synchronize
         unique_ptr<DataType> result_data_ptr = std::move(
-                first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
+                first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_idx].result_idx_]);
         unique_ptr<DataType> input_data_ptr;
         pthread_barrier_wait(&timestamp_barrier_);
-        cout << "Thread Index:" << thread_index << endl;
+        cout << "Thread Index:" << thread_idx << endl;
 
         while (!is_end_of_reduce_) {
             pthread_mutex_lock(&task_taking_mutex_);
@@ -362,8 +340,8 @@ namespace yche {
         pthread_mutex_lock(&task_taking_mutex_);
         second_phase_global_reduce_data_vector.resize(thread_count_);
         pthread_mutex_unlock(&task_taking_mutex_);
-        second_phase_global_reduce_data_vector[thread_index] = std::move(
-                first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_index].result_index_]);
+        second_phase_global_reduce_data_vector[thread_idx] = std::move(
+                first_phase_reduce_data_pool_vec_[reduce_data_indices_vec_[thread_idx].res_idx_]);
         pthread_barrier_wait(&timestamp_barrier_);
         cout << "Finished Send Back 2 Global" << endl;
 #endif
@@ -371,7 +349,7 @@ namespace yche {
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
     void *
-    ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InvokeRingCommThreadFunction(
+    Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::InvokeRingCommThreadFunction(
             void *bundle_input_ptr) {
         auto my_bundle_input_ptr = ((BundleInput *) bundle_input_ptr);
         my_bundle_input_ptr->reducer_ptr_->RingCommTaskStealAndRequestThreadFunction(my_bundle_input_ptr->thread_id_);
@@ -380,7 +358,7 @@ namespace yche {
 
     template<typename DataCollectionType, typename DataType, typename DataCmpFunctionType, typename ComputationFunctionType>
     unique_ptr<DataType>
-    ReduceScheduler<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
+    Reducer<DataCollectionType, DataType, DataCmpFunctionType, ComputationFunctionType>::ParallelExecute() {
         if (is_reduce_task_only_one_) {
             return std::move(first_phase_reduce_data_pool_vec_[0]);
         } else {

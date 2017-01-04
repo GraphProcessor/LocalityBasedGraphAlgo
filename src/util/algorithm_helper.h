@@ -5,6 +5,7 @@
 #ifndef CODES_YCHE_ALGORITHM_HELPER_H
 #define CODES_YCHE_ALGORITHM_HELPER_H
 
+#include <map>
 #include "parallel_utils/detail/dataflow_scheduler.h"
 #include "parallel_utils/detail/reduce_scheduler.h"
 
@@ -12,7 +13,7 @@ namespace yche {
     template<typename Algorithm>
     void ExecuteAlgorithm(int thread_num, unique_ptr<Algorithm> &algorithm_ptr, map<int, int> &index_name_map) {
         cout << "Reduce Enabled" << endl;
-        DataFlowScheduler<Algorithm> parallelizer(thread_num, std::move(algorithm_ptr));
+        DataFlower<Algorithm> parallelizer(thread_num, std::move(algorithm_ptr));
         parallelizer.ParallelExecute();
         algorithm_ptr = std::move(parallelizer.algorithm_ptr_);
 

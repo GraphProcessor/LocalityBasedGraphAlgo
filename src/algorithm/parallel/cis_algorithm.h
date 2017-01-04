@@ -74,7 +74,7 @@ namespace yche {
 
         using OverlappingCommunityVec=vector<unique_ptr<CommunityMemberVec>>;
 
-        //Start Implementation Interfaces For DataFlowScheduler Traits
+        //Start Implementation Interfaces For DataFlower Traits
         unique_ptr<OverlappingCommunityVec> overlap_community_vec_;
         using BasicDataType = CommunityMemberSet;
         using MergeDataType = CommunityMemberVec;
@@ -85,7 +85,7 @@ namespace yche {
 
         void MergeToGlobal(unique_ptr<MergeDataType> &result);
 
-        //Start Implementation Interfaces For ReduceScheduler Traits
+        //Start Implementation Interfaces For Reducer Traits
         using ReduceDataType = OverlappingCommunityVec;
 
         unique_ptr<ReduceDataType> WrapMergeDataToReduceData(unique_ptr<MergeDataType> &merge_data_ptr);
