@@ -74,7 +74,6 @@ namespace yche {
         }
         return edges_vec;
     }
-
 }
 
 namespace std {
