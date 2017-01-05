@@ -22,39 +22,29 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#define mwIndex int
+#define mwIndex size_t
 #define mwSize size_t
+#define rentry(i, j) ((i)+(j)*n)
+
+using namespace std;
 
 struct sparsevec {
-    std::unordered_map<mwIndex, double> map;
+    unordered_map<mwIndex, double> map;
 
-    /** Get an element and provide a default value when it doesn't exist
-     * This command does not insert the element into the vector
-     */
     double get(mwIndex index, double default_value = 0.0) {
         auto it = map.find(index);
-        if (it == map.end()) {
-            return default_value;
-        } else {
-            return it->second;
-        }
+        return it == map.end() ? default_value : it->second;
     }
 
-    /** Compute the sum of all the elements
-     * Implements compensated summation
-     */
     double sum() {
-        return std::accumulate(map.begin(), map.end(), 0,
-                               [](auto &&left, auto &&right) { return left.second + right.second; });
+        return accumulate(map.begin(), map.end(), 0,
+                          [](auto &&left, auto &&right) { return left.second + right.second; });
     }
 
-    /** Compute the max of the element values
-     * This operation returns the first element if the vector is empty.
-     */
     mwIndex max_index() {
-        auto max_ele = std::max_element(map.begin(), map.end(),
-                                        [](auto &&left, auto &&right) { return left.second < right.second; });
-        return max_ele->first;
+        return map.size() == 0 ? 0 :
+               max_element(map.begin(), map.end(),
+                           [](auto &&left, auto &&right) { return left.second < right.second; })->first;
     }
 };
 
@@ -66,41 +56,25 @@ struct sparserow {
 };
 
 
-/**
- * Returns the degree of node u in sparse graph s
- */
 mwIndex sr_degree(sparserow *s, mwIndex u) {
-    return (s->ai[u + 1] - s->ai[u]);
+    return s->ai[u + 1] - s->ai[u];
 }
 
-/**
- * Computes the degree N for the Taylor polynomial
- * of exp(tP) to have error less than eps*exp(t)
- *
- * ( so exp(-t(I-P)) has error less than eps )
- */
-unsigned int taylordegree(const double t, const double eps) {
+unsigned int get_taylor_degree(const double t, const double eps) {
     double eps_exp_t = eps * exp(t);
     double error = exp(t) - 1;
-    double last = 1.;
+    double last = 1;
     double k = 0.;
     while (error > eps_exp_t) {
-        k = k + 1.;
+        k = k + 1;
         last = (last * t) / k;
         error = error - last;
     }
-    return std::max(static_cast<unsigned int>(k), 1u);
+    return max(static_cast<unsigned int>(k), 1u);
 }
 
-/*****
- *
- *          above:  DATA STRUCTURES
- *          below:  CLUSTERING FUNCTIONS
- *
- ****/
 
 /**
- *
  *  gsqexpmseed inputs:
  *      G   -   adjacency matrix of an undirected graph
  *      set -   seed vector: the indices of a seed set of vertices
@@ -117,24 +91,22 @@ unsigned int taylordegree(const double t, const double eps) {
  *      Q - the queue data structure
  */
 template<class Queue>
-int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y,
-                const double t, const double eps,
+int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y, const double t, const double eps,
                 const mwIndex max_push_count, Queue &Q) {
-
     mwIndex n = G->n;
-    mwIndex N = (mwIndex) taylordegree(t, eps);
+    mwIndex N = (mwIndex) get_taylor_degree(t, eps);
 
     // initialize the weights for the different residual partitions
     // r(i,j) > d(i)*exp(t)*eps/(N*psi_j(t))
     //  since each coefficient but d(i) stays the same,
     //  we combine all coefficients except d(i)
     //  into the vector "pushcoeff"
-    std::vector<double> psivec(N + 1, 0.);
+    vector<double> psivec(N + 1, 0.);
     psivec[N] = 1;
     for (int k = 1; k <= N; k++) {
         psivec[N - k] = psivec[N - k + 1] * t / (double) (N - k + 1) + 1;
     } // psivec[k] = psi_k(t)
-    std::vector<double> pushcoeff(N + 1, 0.);
+    vector<double> pushcoeff(N + 1, 0.);
     pushcoeff[0] = ((exp(t) * eps) / (double) N) / psivec[0]; // This is the correct version
     for (int k = 1; k <= N; k++) {
         pushcoeff[k] = pushcoeff[k - 1] * (psivec[k - 1] / psivec[k]);
@@ -147,11 +119,9 @@ int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y,
     sparsevec rvec;
 
     // i is the node index, j is the "step"
-#define rentry(i, j) ((i)+(j)*n)
 
     // set the initial residual, add to the queue
-    for (sparsevec:: auto it = set.map.begin(), itend = set.map.end();
-         it != itend; ++it) {
+    for (auto it = set.map.begin(), itend = set.map.end(); it != itend; ++it) {
         ri = it->first;
         rij = it->second;
         rvec.map[rentry(ri, 0)] += rij;
@@ -162,14 +132,12 @@ int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y,
         // STEP 1: pop top element off of heap
         ri = Q.front();
         Q.pop();
-        // decode incides i,j
         mwIndex i = ri % n;
         mwIndex j = ri / n;
 
         double degofi = (double) sr_degree(G, i);
         rij = rvec.map[ri];
-        //
-        // update yi
+
         y.map[i] += rij;
 
         // update r, no need to update heap here
@@ -180,8 +148,7 @@ int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y,
         double update = rijs * ajv;
 
         if (j == N - 1) {
-            // this is the terminal case, and so we add the column of A
-            // directly to the solution vector y
+            // this is the terminal case, and so we add the column of A, directly to the solution vector y
             for (mwIndex nzi = G->ai[i]; nzi < G->ai[i + 1]; ++nzi) {
                 mwIndex v = G->aj[nzi];
                 y.map[v] += update;
@@ -206,43 +173,34 @@ int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y,
         // terminate when Q is empty, i.e. we've pushed all r(i,j) > eps*exp(t)*d(i)/(N*psi_j(t))
         if (Q.size() == 0) { return npush; }
     }//end 'while'
-    return (npush);
+    return npush;
 }
 
 
-struct greater2nd {
-    template<typename P>
-    bool operator()(const P &p1, const P &p2) {
-        return p1.second > p2.second;
-    }
-};
-
-void cluster_from_sweep(sparserow *G, sparsevec &p,
-                        std::vector<mwIndex> &cluster, double *outcond, double *outvolume,
+void cluster_from_sweep(sparserow *G, sparsevec &p, vector<mwIndex> &cluster, double *outcond, double *outvolume,
                         double *outcut) {
     // now we have to do the sweep over p in sorted order by value
-    typedef std::vector<std::pair<int, double> > vertex_prob_type;
+    typedef vector<pair<int, double> > vertex_prob_type;
     vertex_prob_type prpairs(p.map.begin(), p.map.end());
-    std::sort(prpairs.begin(), prpairs.end(), greater2nd());
+
+    sort(prpairs.begin(), prpairs.end(), [](auto &&left, auto &&right) { return left.second > right.second; });
 
     // compute cutsize, volume, and conductance
-    std::vector<double> conductance(prpairs.size());
-    std::vector<mwIndex> volume(prpairs.size());
-    std::vector<mwIndex> cutsize(prpairs.size());
+    vector<double> conductance(prpairs.size());
+    vector<mwIndex> volume(prpairs.size());
+    vector<mwIndex> cutsize(prpairs.size());
 
     size_t i = 0;
-    std::unordered_map<int, size_t> rank;
-    for (vertex_prob_type::iterator it = prpairs.begin(), itend = prpairs.end();
+    unordered_map<int, size_t> rank;
+    for (auto it = prpairs.begin(), itend = prpairs.end();
          it != itend; ++it, ++i) {
         rank[it->first] = i;
     }
-    //printf("support=%i\n",prpairs.size());
     mwIndex total_degree = G->ai[G->m];
     mwIndex curcutsize = 0;
     mwIndex curvolume = 0;
     i = 0;
-    for (vertex_prob_type::iterator it = prpairs.begin(), itend = prpairs.end();
-         it != itend; ++it, ++i) {
+    for (auto it = prpairs.begin(), itend = prpairs.end(); it != itend; ++it, ++i) {
         mwIndex v = it->first;
         mwIndex deg = G->ai[v + 1] - G->ai[v];
         mwIndex change = deg;
@@ -265,13 +223,13 @@ void cluster_from_sweep(sparserow *G, sparsevec &p,
             conductance[i] = 1;
         } else {
             conductance[i] = (double) curcutsize /
-                             (double) std::min(curvolume, total_degree - curvolume);
+                             (double) min(curvolume, total_degree - curvolume);
         }
-        //printf("%5i : cut=%6i vol=%6i prval=%8g cond=%f\n", i, curcutsize, curvolume, it->second, conductance[i]);
     }
+
     // we stopped the iteration when it finished, or when it hit target_vol
     size_t lastind = i;
-    double mincond = std::numeric_limits<double>::max();
+    double mincond = numeric_limits<double>::max();
     size_t mincondind = 0; // set to zero so that we only add one vertex
     for (i = 0; i < lastind; i++) {
         if (conductance[i] < mincond) {
@@ -279,16 +237,10 @@ void cluster_from_sweep(sparserow *G, sparsevec &p,
             mincondind = i;
         }
     }
-    //printf("mincond=%f mincondind=%i\n", mincond, mincondind);
     if (lastind == 0) {
-        // add a case
         mincond = 0.0;
     }
-    i = 0;
-    for (vertex_prob_type::iterator it = prpairs.begin(), itend = prpairs.end();
-         it != itend && i < mincondind + 1; ++it, ++i) {
-        cluster.push_back(it->first);
-    }
+    for (auto &ele:prpairs) { cluster.emplace_back(ele.first); }
     if (outcond) { *outcond = mincond; }
     if (outvolume) { *outvolume = volume[mincondind]; }
     if (outcut) { *outcut = cutsize[mincondind]; }
@@ -297,7 +249,9 @@ void cluster_from_sweep(sparserow *G, sparsevec &p,
 struct local_hkpr_stats {
     double conductance;
     double volume;
+    double support;
     double steps;
+    double eps;
     double cut;
 };
 
@@ -311,9 +265,9 @@ struct local_hkpr_stats {
  * @param stats a structure for statistics of the computation
  */
 template<class Queue>
-int hypercluster_heatkernel_multiple(sparserow *G, const std::vector<mwIndex> &set, double t, double eps,
+int hypercluster_heatkernel_multiple(sparserow *G, const vector<mwIndex> &set, double t, double eps,
                                      sparsevec &p, sparsevec &r, Queue &q,
-                                     std::vector<mwIndex> &cluster, local_hkpr_stats *stats) {
+                                     vector<mwIndex> &cluster, local_hkpr_stats *stats) {
     // reset data
     p.map.clear();
     r.map.clear();
@@ -325,30 +279,22 @@ int hypercluster_heatkernel_multiple(sparserow *G, const std::vector<mwIndex> &s
         assert(set[i] < G->n); // assert that "set" contains indices i: 1<=i<=n
         size_t setideg = sr_degree(G, set[i]);
         r.map[set[i]] = 1. / (double) (set.size()); // r is normalized to be stochastic
-        //    DEBUGPRINT(("i = %i \t set[i] = %i \t setideg = %i \n", i, set[i], setideg));
-        maxdeg = std::max(maxdeg, setideg);
+        maxdeg = max(maxdeg, setideg);
     }
 
-    int nsteps = gsqexpmseed(G, r, p, t, eps, ceil(pow(G->n, 1.5)), q);
-    /**
-     *      **********
-     *
-     *        ***       GSQEXPMSEED       is called         ***
-     *
-     *      **********
-     */
+    int nsteps = gsqexpmseed(G, r, p, t, eps, static_cast<int>(ceil(pow(G->n, 1.5))), q);
 
     if (nsteps == 0) {
         p = r; // just copy over the residual
     }
-    int support = r.map.size();
+    int support = static_cast<int>(r.map.size());
     if (stats) { stats->steps = nsteps; }
     if (stats) { stats->support = support; }
 
     // scale the probablities by their degree
     for (auto it = p.map.begin(), itend = p.map.end();
          it != itend; ++it) {
-        it->second *= (1.0 / (double) std::max(sr_degree(G, it->first), (mwIndex) 1));
+        it->second *= (1.0 / (double) max(sr_degree(G, it->first), (mwIndex) 1));
     }
 
     double *outcond = NULL;
@@ -358,11 +304,10 @@ int hypercluster_heatkernel_multiple(sparserow *G, const std::vector<mwIndex> &s
     if (stats) { outvolume = &stats->volume; }
     if (stats) { outcut = &stats->cut; }
     cluster_from_sweep(G, p, cluster, outcond, outvolume, outcut);
-    return (0);
+    return 0;
 }
 
 /** Grow a set of seeds via the heat-kernel.
- *
  * @param G sparserow version of input matrix A
  * @param seeds a vector of input seeds seeds (index 0, N-1), and then
  *          updated to have the final solution nodes as well.
@@ -372,15 +317,14 @@ int hypercluster_heatkernel_multiple(sparserow *G, const std::vector<mwIndex> &s
  * @param fcut the final cut score of the set
  * @param fvol the final volume score of the set
  */
-void hkgrow(sparserow *G, std::vector<mwIndex> &seeds, double t,
+void hkgrow(sparserow *G, vector<mwIndex> &seeds, double t,
             double eps, double *fcond, double *fcut,
             double *fvol, sparsevec &p, double *npushes) {
     sparsevec r;
-    std::queue<mwIndex> q;
+    queue<mwIndex> q;
     local_hkpr_stats stats;
-    std::vector<mwIndex> bestclus;
-    hypercluster_heatkernel_multiple(G, seeds, t, eps,
-                                     p, r, q, bestclus, &stats);
+    vector<mwIndex> bestclus;
+    hypercluster_heatkernel_multiple(G, seeds, t, eps, p, r, q, bestclus, &stats);
     seeds = bestclus;
     *npushes = stats.steps;
     *fcond = stats.conductance;
@@ -388,7 +332,8 @@ void hkgrow(sparserow *G, std::vector<mwIndex> &seeds, double t,
     *fvol = stats.volume;
 }
 
-void copy_array_to_index_vector(const mxArray *v, std::vector<mwIndex> &vec) {
+/*
+void copy_array_to_index_vector(const mxArray *v, vector<mwIndex> &vec) {
     size_t n = mxGetNumberOfElements(v);
     double *p = mxGetPr(v);
 
@@ -402,7 +347,6 @@ void copy_array_to_index_vector(const mxArray *v, std::vector<mwIndex> &vec) {
 }
 
 
-// USAGE
 // [bestset,cond,cut,vol,y,npushes] = hkgrow_mex(A,set,t,eps,debugflag)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     if (nrhs == 5) {
@@ -437,7 +381,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     r.aj = mxGetIr(mat);
     r.a = mxGetPr(mat);
 
-    std::vector<mwIndex> seeds;
+    vector<mwIndex> seeds;
     copy_array_to_index_vector(set, seeds);
     sparsevec hkpr;
 
@@ -461,6 +405,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             ci[it->first] = it->second;
         }
     }
-}
+}*/
 
 #endif //CODES_YCHE_HR_GROW_SEQUENTIAL_ALGORITHM_H
