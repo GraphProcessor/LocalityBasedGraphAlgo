@@ -53,12 +53,15 @@ struct sparserow {
     mwIndex *ai;
     mwIndex *aj;
     double *a;
+
+    mwIndex sr_degree(mwIndex u) {
+        return ai[u + 1] - ai[u];
+    }
 };
 
-
-mwIndex sr_degree(sparserow *s, mwIndex u) {
-    return s->ai[u + 1] - s->ai[u];
-}
+//mwIndex sr_degree(sparserow *s, mwIndex u) {
+//    return s->ai[u + 1] - s->ai[u];
+//}
 
 unsigned int get_taylor_degree(const double t, const double eps) {
     double eps_exp_t = eps * exp(t);
@@ -135,7 +138,7 @@ int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y, const double t, cons
         mwIndex i = ri % n;
         mwIndex j = ri / n;
 
-        double degofi = (double) sr_degree(G, i);
+        double degofi = (double) G->sr_degree(i);
         rij = rvec.map[ri];
 
         y.map[i] += rij;
@@ -162,7 +165,7 @@ int gsqexpmseed(sparserow *G, sparsevec &set, sparsevec &y, const double t, cons
                 mwIndex re = rentry(v, j + 1);
                 double reold = rvec.get(re);
                 double renew = reold + update;
-                double dv = sr_degree(G, v);
+                double dv = G->sr_degree(v);
                 rvec.map[re] = renew;
                 if (renew >= dv * pushcoeff[j + 1] && reold < dv * pushcoeff[j + 1]) {
                     Q.push(re);
@@ -277,7 +280,7 @@ int hypercluster_heatkernel_multiple(sparserow *G, const vector<mwIndex> &set, d
     for (size_t i = 0; i < set.size(); ++i) { //populate r with indices of "set"
         assert(set[i] >= 0);
         assert(set[i] < G->n); // assert that "set" contains indices i: 1<=i<=n
-        size_t setideg = sr_degree(G, set[i]);
+        size_t setideg = G->sr_degree(set[i]);
         r.map[set[i]] = 1. / (double) (set.size()); // r is normalized to be stochastic
         maxdeg = max(maxdeg, setideg);
     }
@@ -294,7 +297,7 @@ int hypercluster_heatkernel_multiple(sparserow *G, const vector<mwIndex> &set, d
     // scale the probablities by their degree
     for (auto it = p.map.begin(), itend = p.map.end();
          it != itend; ++it) {
-        it->second *= (1.0 / (double) max(sr_degree(G, it->first), (mwIndex) 1));
+        it->second *= (1.0 / (double) max(G->sr_degree(it->first), (mwIndex) 1));
     }
 
     double *outcond = NULL;
