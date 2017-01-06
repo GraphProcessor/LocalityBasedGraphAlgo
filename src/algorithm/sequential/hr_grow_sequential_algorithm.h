@@ -76,12 +76,10 @@ unsigned int get_taylor_degree(double t, double eps) {
  *  gsqexpmseed inputs:
  *      G   -   adjacency matrix of an undirected graph
  *      set -   seed vector: the indices of a seed set of vertices
- *              around which cluster forms; normalized so
- *                  set[i] = 1/set.size(); )
+ *              around which cluster forms; normalized so set[i] = 1/set.size(); )
  *  output:
  *      y = exp(tP) * set
- *              with infinity-norm accuracy of eps * e^t
- *              in the degree weighted norm
+ *              with infinity-norm accuracy of eps * e^t in the degree weighted norm
  *  parameters:
  *      t   - the value of t
  *      eps - the accuracy
@@ -120,8 +118,7 @@ mwIndex gs_qexpm_seed(sparse_row *graph, sparse_vec &set, sparse_vec &y, const d
     // i is the node index, j is the "step"
     // set the initial residual, add to the queue
     for (auto it = set.weight_map_.begin(), itend = set.weight_map_.end(); it != itend; ++it) {
-        ri = it->first;
-        rij = it->second;
+        tie(ri, rij) = *it;
         rvec.weight_map_[rentry(ri, 0)] += rij;
         Q.push(rentry(ri, 0));
     }
@@ -130,6 +127,7 @@ mwIndex gs_qexpm_seed(sparse_row *graph, sparse_vec &set, sparse_vec &y, const d
         // STEP 1: pop top element off of heap
         ri = Q.front();
         Q.pop();
+
         mwIndex i = ri % n;
         mwIndex j = ri / n;
 
