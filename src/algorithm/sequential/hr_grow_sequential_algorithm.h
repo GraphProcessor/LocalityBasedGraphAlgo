@@ -16,7 +16,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-
 namespace yche {
     using namespace std;
 
@@ -56,30 +55,30 @@ namespace yche {
         double volume;
         double support;
         double steps;
-        double eps;
         double cut;
     };
 
     class HKGrow {
     public:
-        size_t get_taylor_degree(double t, double eps);
+        size_t ExpandSeed(sparse_row &graph, sparse_vec &set, sparse_vec &y,
+                          double t, double eps, size_t max_push_count);
 
-        vector<double> compute_psi_vec(size_t taylor_deg, double t);
+        void SweepCut(sparse_row &G, sparse_vec &p, vector<size_t> &cluster,
+                      double *out_cond, double *out_volume, double *out_cut);
 
-        vector<double> compute_threshold_vec(size_t taylor_deg, double eps, double t, vector<double> psi_vec);
+        int HyperCluster(sparse_row &G, const vector<size_t> &seed_set, double t, double eps,
+                         sparse_vec &p, sparse_vec &r, vector<size_t> &cluster,
+                         local_hkpr_stats *stats);
 
-        size_t gs_qexpm_seed(sparse_row &graph, sparse_vec &set, sparse_vec &y, double t, double eps,
-                             size_t max_push_count);
+        void ExecuteHRGRow(sparse_row &G, vector<size_t> &seeds, double t, double eps, double &f_cond, double &f_cut,
+                           double &f_vol, sparse_vec &p, double &num_push);
 
-        void cluster_from_sweep(sparse_row &G, sparse_vec &p, vector<size_t> &cluster, double *out_cond,
-                                double *out_volume, double *out_cut);
+    private:
+        size_t GetTaylorDegree(double t, double eps);
 
-        int hyper_cluster_heat_kernel_multiple(sparse_row &G, const vector<size_t> &seed_set, double t, double eps,
-                                               sparse_vec &p, sparse_vec &r, vector<size_t> &cluster,
-                                               local_hkpr_stats *stats);
+        vector<double> ComputePsiVec(size_t taylor_deg, double t);
 
-        void hk_grow(sparse_row &G, vector<size_t> &seeds, double t, double eps, double &fcond, double &fcut,
-                     double &fvol, sparse_vec &p, double &pushes);
+        vector<double> ComputeThresholdVec(size_t taylor_deg, double eps, double t, vector<double> &psi_vec);
     };
 
 

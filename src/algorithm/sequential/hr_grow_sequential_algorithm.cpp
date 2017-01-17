@@ -5,7 +5,7 @@
 #include "hr_grow_sequential_algorithm.h"
 
 namespace yche {
-    size_t HKGrow::get_taylor_degree(double t, double eps) {
+    size_t HKGrow::GetTaylorDegree(double t, double eps) {
         auto eps_exp_t = eps * exp(t);
         auto error = exp(t) - 1;
         auto last = 1.0;
@@ -18,7 +18,7 @@ namespace yche {
         return max(k, 1u);
     }
 
-    vector<double> HKGrow::compute_psi_vec(size_t taylor_deg, double t) {
+    vector<double> HKGrow::ComputePsiVec(size_t taylor_deg, double t) {
         auto psi_vec = vector<double>(taylor_deg + 1, 0);
         psi_vec[taylor_deg] = 1;
         for (int k = 1; k <= taylor_deg; k++) {
@@ -27,7 +27,7 @@ namespace yche {
         return psi_vec;
     }
 
-    vector<double> HKGrow::compute_threshold_vec(size_t taylor_deg, double eps, double t, vector<double> psi_vec) {
+    vector<double> HKGrow::ComputeThresholdVec(size_t taylor_deg, double eps, double t, vector<double> &psi_vec) {
         auto push_coefficient_vec = vector<double>(taylor_deg + 1, 0);
         push_coefficient_vec[0] = ((exp(t) * eps) / (double) taylor_deg) / psi_vec[0];
         for (int k = 1; k <= taylor_deg; k++) {
@@ -36,15 +36,15 @@ namespace yche {
         return push_coefficient_vec;
     }
 
-    size_t HKGrow::gs_qexpm_seed(sparse_row &graph, sparse_vec &set, sparse_vec &y, double t, double eps,
-                                 size_t max_push_count) {
+    size_t HKGrow::ExpandSeed(sparse_row &graph, sparse_vec &set, sparse_vec &y, double t, double eps,
+                              size_t max_push_count) {
         auto task_queue = queue<pair<size_t, size_t>>();
         auto n = graph.n_;
 
 #define rentry(i, j) ((i)+(j)*n)
-        auto taylor_deg = get_taylor_degree(t, eps);
-        auto psi_vec = compute_psi_vec(taylor_deg, t);
-        auto push_coefficient_vec = compute_threshold_vec(taylor_deg, eps, t, psi_vec);
+        auto taylor_deg = GetTaylorDegree(t, eps);
+        auto psi_vec = ComputePsiVec(taylor_deg, t);
+        auto push_coefficient_vec = ComputeThresholdVec(taylor_deg, eps, t, psi_vec);
 
         size_t ri = 0;
         size_t push_num = 0;
@@ -99,9 +99,8 @@ namespace yche {
         return push_num;
     }
 
-    void HKGrow::cluster_from_sweep(sparse_row &G, sparse_vec &p, vector<size_t> &cluster, double *out_cond,
-                                    double *out_volume,
-                                    double *out_cut) {
+    void HKGrow::SweepCut(sparse_row &G, sparse_vec &p, vector<size_t> &cluster, double *out_cond,
+                          double *out_volume, double *out_cut) {
         auto pr_pairs = vector<pair<size_t, double>>(p.weight_map_.begin(), p.weight_map_.end());
         sort(pr_pairs.begin(), pr_pairs.end(), [](auto &&left, auto &&right) { return left.second > right.second; });
 
@@ -151,9 +150,8 @@ namespace yche {
     }
 
 
-    int HKGrow::hyper_cluster_heat_kernel_multiple(sparse_row &G, const vector<size_t> &seed_set, double t, double eps,
-                                                   sparse_vec &p, sparse_vec &r, vector<size_t> &cluster,
-                                                   local_hkpr_stats *stats) {
+    int HKGrow::HyperCluster(sparse_row &G, const vector<size_t> &seed_set, double t, double eps,
+                             sparse_vec &p, sparse_vec &r, vector<size_t> &cluster, local_hkpr_stats *stats) {
         auto max_deg = 0ul;
         for (auto i = 0; i < seed_set.size(); ++i) {
             auto seed_vertex = seed_set[i];
@@ -162,15 +160,10 @@ namespace yche {
             max_deg = max(max_deg, v_degree);
         }
 
-        auto step_num = gs_qexpm_seed(G, r, p, t, eps, static_cast<size_t >(ceil(pow(G.n_, 1.5))));
-
-        if (step_num == 0) { p = r; }
+        auto step_num = ExpandSeed(G, r, p, t, eps, static_cast<size_t >(ceil(pow(G.n_, 1.5))));
 
         if (stats) { stats->steps = step_num; }
         if (stats) { stats->support = r.weight_map_.size(); }
-
-        for (auto &ele:p.weight_map_) { ele.second *= (1.0 / max(G.sr_degree(ele.first), static_cast<size_t >(1))); }
-
         double *out_cond = nullptr;
         double *out_volume = nullptr;
         double *out_cut = nullptr;
@@ -178,22 +171,24 @@ namespace yche {
         if (stats) { out_volume = &stats->volume; }
         if (stats) { out_cut = &stats->cut; }
 
-        cluster_from_sweep(G, p, cluster, out_cond, out_volume, out_cut);
+        if (step_num == 0) { p = r; }
+        for (auto &ele:p.weight_map_) { ele.second *= (1.0 / max(G.sr_degree(ele.first), static_cast<size_t >(1))); }
+        SweepCut(G, p, cluster, out_cond, out_volume, out_cut);
         return 0;
     }
 
-    void HKGrow::hk_grow(sparse_row &G, vector<size_t> &seeds, double t, double eps, double &fcond, double &fcut,
-                         double &fvol, sparse_vec &p, double &npushes) {
+    void HKGrow::ExecuteHRGRow(sparse_row &G, vector<size_t> &seeds, double t, double eps, double &f_cond,
+                               double &f_cut, double &f_vol, sparse_vec &p, double &num_push) {
         sparse_vec r;
         vector<size_t> best_cluster_vec;
         local_hkpr_stats stats;
 
-        hyper_cluster_heat_kernel_multiple(G, seeds, t, eps, p, r, best_cluster_vec, &stats);
+        HyperCluster(G, seeds, t, eps, p, r, best_cluster_vec, &stats);
         seeds = best_cluster_vec;
 
-        npushes = stats.steps;
-        fcond = stats.conductance;
-        fcut = stats.cut;
-        fvol = stats.volume;
+        num_push = stats.steps;
+        f_cond = stats.conductance;
+        f_cut = stats.cut;
+        f_vol = stats.volume;
     }
 }

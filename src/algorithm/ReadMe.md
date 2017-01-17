@@ -18,7 +18,7 @@
  */
 ```
 
-- `compute_psi_vec`
+- `ComputePsiVec`
 
 ```cpp
 // initialize the weights for the different residual partitions
@@ -129,7 +129,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     copy_array_to_index_vector(set, seeds);
     sparse_vec hkpr;
 
-    hk_grow(&r, seeds, t, eps, mxGetPr(cond), mxGetPr(cut), mxGetPr(vol), hkpr, mxGetPr(npushes));
+    ExecuteHRGRow(&r, seeds, t, eps, mxGetPr(cond), mxGetPr(cut), mxGetPr(vol), hkpr, mxGetPr(npushes));
 
     if (nlhs > 0) { // sets output "bestset" to the set of best conductance
         mxArray *cassign = mxCreateDoubleMatrix(seeds.size(), 1, mxREAL);
