@@ -54,7 +54,7 @@ namespace yche {
                 epsilon_(epsilon), min_comm_size_(min_comm_size), max_iter_(max_iter),
                 graph_ptr_(std::move(graph_ptr)) {}
 
-        void ExecuteDaemon();
+        void ExecuteDemon();
 
     private:
         unique_ptr<Graph> graph_ptr_;

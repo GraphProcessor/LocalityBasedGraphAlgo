@@ -18,6 +18,24 @@
  */
 ```
 
+- `compute_psi_vec`
+
+```cpp
+// initialize the weights for the different residual partitions
+        // r(i,j) > d(i)*exp(t)*eps/(taylor_deg*psi_j(t))
+        //  since each coefficient but d(i) stays the same,
+        //  we combine all coefficients except d(i)
+        //  into the vector "push_coeff_vec"
+        // psi_vec[k] = psi_k(t)
+```
+
+- `compute threshold`
+
+```cpp
+        // push_coefficient_vec[j] = exp(t)*eps/(taylor_deg*psi_vec[j])
+
+```
+
 - comment info
 
 ```cpp
@@ -35,6 +53,14 @@
  *      max_push_count - the total number of steps to run
  *      Q - the queue data structure
  */
+ 
+// i is the node index, j is the "step"
+
+// STEP 1: pop top element off of heap
+// update r, no need to update heap here
+
+// terminate when task_queue is empty, i.e. we've pushed all r(i,j) > eps*exp(t)*d(i)/(taylor_deg*psi_j(t))
+
  
  
  /** Cluster will contain a list of all the vertices in the cluster

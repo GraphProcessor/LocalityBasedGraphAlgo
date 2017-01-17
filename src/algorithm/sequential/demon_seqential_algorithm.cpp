@@ -192,7 +192,7 @@ namespace yche {
         }
     }
 
-    void Demon::ExecuteDaemon() {
+    void Demon::ExecuteDemon() {
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);

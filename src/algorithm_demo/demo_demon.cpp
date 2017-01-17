@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     auto max_iteration = 100;
     auto demon_algo = Demon(epsilon, min_community_size, graph_ptr, max_iteration);
 
-    demon_algo.ExecuteDaemon();
+    demon_algo.ExecuteDemon();
     auto &arr_2d = demon_algo.overlap_community_vec_;
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
 
