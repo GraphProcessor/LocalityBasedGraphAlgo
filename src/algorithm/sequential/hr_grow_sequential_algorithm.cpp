@@ -39,21 +39,19 @@ namespace yche {
     size_t HKGrow::ExpandSeed(sparse_row &graph, sparse_vec &set, sparse_vec &y, double t, double eps,
                               size_t max_push_count) {
         auto task_queue = queue<pair<size_t, size_t>>();
-        auto n = graph.n_;
-
-#define rentry(i, j) ((i)+(j)*n)
         auto taylor_deg = GetTaylorDegree(t, eps);
         auto psi_vec = ComputePsiVec(taylor_deg, t);
         auto push_coefficient_vec = ComputeThresholdVec(taylor_deg, eps, t, psi_vec);
 
-        size_t ri = 0;
-        size_t push_num = 0;
+        auto ri = 0ul;
         auto rij = 0.0;
+        auto push_num = 0ul;
         sparse_vec residual_vec;
 
+#define rentry(i, j, n) ((i)+(j)*(n))
         for (auto &ele: set.weight_map_) {
             tie(ri, rij) = ele;
-            residual_vec.weight_map_[rentry(ri, 0)] += rij;
+            residual_vec.weight_map_[rentry(ri, 0, graph.n_)] += rij;
             task_queue.emplace(ri, 0);
         }
 
@@ -72,17 +70,14 @@ namespace yche {
             auto update = rijs * ajv;
 
             if (j == taylor_deg - 1) {
-                // this is the terminal case, and so we add the column of A, directly to the solution vector y
                 for (size_t nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
                     auto dst_v = graph.edges_[nzi];
                     y.weight_map_[dst_v] += update;
                 }
-                push_num += deg_of_i;
             } else {
-                // this is the interior case, and so we add the column of A to the residual at the next time step.
-                for (size_t nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
+                for (auto nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
                     auto dst_v = graph.edges_[nzi];
-                    auto re = rentry(dst_v, j + 1);
+                    auto re = rentry(dst_v, j + 1, graph.n_);
                     auto re_old = residual_vec.get(re);
                     auto re_new = re_old + update;
                     double dv = graph.sr_degree(dst_v);
@@ -91,8 +86,8 @@ namespace yche {
                         task_queue.emplace(dst_v, j + 1);
                     }
                 }
-                push_num += deg_of_i;
             }
+            push_num += deg_of_i;
             if (task_queue.size() == 0) { return push_num; }
         }
 #undef rentry
@@ -105,11 +100,11 @@ namespace yche {
         sort(pr_pairs.begin(), pr_pairs.end(), [](auto &&left, auto &&right) { return left.second > right.second; });
 
         auto conductance_vec = vector<double>(pr_pairs.size());
-        size_t total_degree = G.vertices_[G.m_];
+        auto total_degree = G.vertices_[G.m_];
         auto volume_vec = vector<size_t>(pr_pairs.size());
-        size_t cur_volume = 0;
+        auto cur_volume = 0ul;
         auto cut_size_vec = vector<size_t>(pr_pairs.size());
-        size_t cur_cut_size = 0;
+        auto cur_cut_size = 0ul;
 
         auto rank_map = unordered_map<size_t, size_t>();
         for (auto i = 0ul; i < pr_pairs.size(); i++) { rank_map[pr_pairs[i].first] = i; }
@@ -117,7 +112,7 @@ namespace yche {
             auto v = pr_pairs[i].first;
             auto deg = G.vertices_[v + 1] - G.vertices_[v];
             auto change = deg;
-            for (size_t nzi = G.vertices_[v]; nzi < G.vertices_[v + 1]; ++nzi) {
+            for (auto nzi = G.vertices_[v]; nzi < G.vertices_[v + 1]; ++nzi) {
                 auto neighbor_v = G.edges_[nzi];
                 if (rank_map.count(neighbor_v) > 0 && rank_map[neighbor_v] < rank_map[v]) {
                     change -= 2;
@@ -132,21 +127,16 @@ namespace yche {
                                   static_cast<double>(cur_cut_size) / min(cur_volume, total_degree - cur_volume));
         }
 
-        // we stopped the iteration when it finished, or when it hit target_vol
-        auto min_cond = numeric_limits<double>::max();
-        size_t min_cond_idx = 0; // set to zero so that we only add one vertex
+        transform(begin(pr_pairs), end(pr_pairs), back_inserter(cluster), [](auto &&ele) { return ele.first; });
 
-        for (auto i = 0ul; i < pr_pairs.size(); i++) {
-            if (conductance_vec[i] < min_cond) {
-                min_cond = conductance_vec[i];
-                min_cond_idx = i;
-            }
-        }
-        if (pr_pairs.size() == 0) { min_cond = 0.0; }
-        for (auto &ele:pr_pairs) { cluster.emplace_back(ele.first); }
+        auto min_iter = min_element(begin(conductance_vec), end(conductance_vec));
+        auto min_cond = (min_iter == end(conductance_vec) ? 0.0 : *min_iter);
+        auto min_cond_idx = min_iter - begin(conductance_vec);
+
         if (out_cond) { *out_cond = min_cond; }
         if (out_volume) { *out_volume = volume_vec[min_cond_idx]; }
         if (out_cut) { *out_cut = cut_size_vec[min_cond_idx]; }
+
     }
 
 

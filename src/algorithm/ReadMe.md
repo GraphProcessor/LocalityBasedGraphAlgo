@@ -72,6 +72,9 @@
   * @param a vector which supports .push_back to add vertices for the cluster
   * @param stats a structure for statistics of the computation
   */
+  
+// we stopped the iteration when it finished, or when it hit target_vol
+  
 
 /** Grow a set of seeds via the heat-kernel.
  * @param G sparserow version of input matrix A
@@ -84,6 +87,33 @@
  * @param fvol the final volume score of the set
  */
 
+```
+
+- seed expand
+
+```cpp
+            if (j == taylor_deg - 1) {
+                // this is the terminal case, and so we add the column of A, directly to the solution vector y
+                for (size_t nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
+                    auto dst_v = graph.edges_[nzi];
+                    y.weight_map_[dst_v] += update;
+                }
+                push_num += deg_of_i;
+            } else {
+                // this is the interior case, and so we add the column of A to the residual at the next time step.
+                for (auto nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
+                    auto dst_v = graph.edges_[nzi];
+                    auto re = rentry(dst_v, j + 1, graph.n_);
+                    auto re_old = residual_vec.get(re);
+                    auto re_new = re_old + update;
+                    double dv = graph.sr_degree(dst_v);
+                    residual_vec.weight_map_[re] = re_new;
+                    if (re_new >= dv * push_coefficient_vec[j + 1] && re_old < dv * push_coefficient_vec[j + 1]) {
+                        task_queue.emplace(dst_v, j + 1);
+                    }
+                }
+                push_num += deg_of_i;
+            }
 ```
 
 - parameters
