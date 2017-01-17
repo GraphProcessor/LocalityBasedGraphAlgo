@@ -78,7 +78,7 @@ namespace yche {
 
         vector<double> ComputePsiVec(size_t taylor_deg, double t);
 
-        vector<double> ComputeThresholdVec(size_t taylor_deg, double eps, double t, vector<double> &psi_vec);
+        vector<double> ComputePushCOefficientVec(size_t taylor_deg, double eps, double t, vector<double> &psi_vec);
     };
 
 

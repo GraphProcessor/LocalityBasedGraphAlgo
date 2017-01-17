@@ -27,7 +27,7 @@ namespace yche {
         return psi_vec;
     }
 
-    vector<double> HKGrow::ComputeThresholdVec(size_t taylor_deg, double eps, double t, vector<double> &psi_vec) {
+    vector<double> HKGrow::ComputePushCOefficientVec(size_t taylor_deg, double eps, double t, vector<double> &psi_vec) {
         auto push_coefficient_vec = vector<double>(taylor_deg + 1, 0);
         push_coefficient_vec[0] = ((exp(t) * eps) / (double) taylor_deg) / psi_vec[0];
         for (int k = 1; k <= taylor_deg; k++) {
@@ -41,7 +41,7 @@ namespace yche {
         auto task_queue = queue<pair<size_t, size_t>>();
         auto taylor_deg = GetTaylorDegree(t, eps);
         auto psi_vec = ComputePsiVec(taylor_deg, t);
-        auto push_coefficient_vec = ComputeThresholdVec(taylor_deg, eps, t, psi_vec);
+        auto push_coefficient_vec = ComputePushCOefficientVec(taylor_deg, eps, t, psi_vec);
 
         auto ri = 0ul;
         auto rij = 0.0;
@@ -70,7 +70,7 @@ namespace yche {
             auto update = rijs * ajv;
 
             if (j == taylor_deg - 1) {
-                for (size_t nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
+                for (auto nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
                     auto dst_v = graph.edges_[nzi];
                     y.weight_map_[dst_v] += update;
                 }
@@ -100,14 +100,15 @@ namespace yche {
         sort(pr_pairs.begin(), pr_pairs.end(), [](auto &&left, auto &&right) { return left.second > right.second; });
 
         auto conductance_vec = vector<double>(pr_pairs.size());
-        auto total_degree = G.vertices_[G.m_];
         auto volume_vec = vector<size_t>(pr_pairs.size());
-        auto cur_volume = 0ul;
         auto cut_size_vec = vector<size_t>(pr_pairs.size());
-        auto cur_cut_size = 0ul;
-
         auto rank_map = unordered_map<size_t, size_t>();
         for (auto i = 0ul; i < pr_pairs.size(); i++) { rank_map[pr_pairs[i].first] = i; }
+
+        auto total_degree = G.vertices_[G.m_];
+        auto cur_volume = 0ul;
+        auto cur_cut_size = 0ul;
+
         for (auto i = 0ul; i < pr_pairs.size(); i++) {
             auto v = pr_pairs[i].first;
             auto deg = G.vertices_[v + 1] - G.vertices_[v];
