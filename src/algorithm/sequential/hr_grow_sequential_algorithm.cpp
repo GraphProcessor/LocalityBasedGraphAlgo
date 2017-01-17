@@ -17,20 +17,7 @@ unsigned int get_taylor_degree(double t, double eps) {
     return max(k, 1u);
 }
 
-/**
- *  gsqexpmseed inputs:
- *      G   -   adjacency matrix of an undirected graph
- *      set -   seed vector: the indices of a seed set of vertices
- *              around which cluster forms; normalized so set[i] = 1/set.size(); )
- *  output:
- *      y = exp(tP) * set
- *              with infinity-norm accuracy of eps * e^t in the degree weighted norm
- *  parameters:
- *      t   - the value of t
- *      eps - the accuracy
- *      max_push_count - the total number of steps to run
- *      Q - the queue data structure
- */
+
 mwIndex gs_qexpm_seed(sparse_row *graph, sparse_vec &set, sparse_vec &y, const double t, const double eps,
                       const mwIndex max_push_count, queue<mwIndex> &Q) {
     mwIndex n = graph->n_;
@@ -180,15 +167,6 @@ void cluster_from_sweep(sparse_row *G, sparse_vec &p, vector<mwIndex> &cluster, 
 }
 
 
-/** Cluster will contain a list of all the vertices in the cluster
- * @param seed_set the set of starting vertices to use
- * @param t the value of t in the heat-kernel-PageRank computation
- * @param eps the solution tolerance eps
- * @param p the heat-kernel-pagerank vector
- * @param r the residual vector
- * @param a vector which supports .push_back to add vertices for the cluster
- * @param stats a structure for statistics of the computation
- */
 int hyper_cluster_heat_kernel_multiple(sparse_row *G, const vector<mwIndex> &seed_set, double t, double eps,
                                        sparse_vec &p, sparse_vec &r, queue<mwIndex> &q, vector<mwIndex> &cluster,
                                        local_hkpr_stats *stats) {
@@ -226,16 +204,6 @@ int hyper_cluster_heat_kernel_multiple(sparse_row *G, const vector<mwIndex> &see
     return 0;
 }
 
-/** Grow a set of seeds via the heat-kernel.
- * @param G sparserow version of input matrix A
- * @param seeds a vector of input seeds seeds (index 0, N-1), and then
- *          updated to have the final solution nodes as well.
- * @param t the value of t in the heat-kernel
- * @param eps the solution tolerance epsilon
- * @param fcond the final conductance score of the set.
- * @param fcut the final cut score of the set
- * @param fvol the final volume score of the set
- */
 void hk_grow(sparse_row *G, vector<mwIndex> &seeds, double t, double eps, double *fcond, double *fcut,
              double *fvol, sparse_vec &p, double *npushes) {
     sparse_vec r;

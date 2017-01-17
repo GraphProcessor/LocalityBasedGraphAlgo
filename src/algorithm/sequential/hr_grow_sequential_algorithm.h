@@ -5,11 +5,6 @@
 #ifndef CODES_YCHE_HR_GROW_SEQUENTIAL_ALGORITHM_H
 #define CODES_YCHE_HR_GROW_SEQUENTIAL_ALGORITHM_H
 
-/**
- * Implement a seeded heat-kernel clustering scheme.
- * [bestset,cond,cut,vol,y,npushes] = hkgrow_mex(A,set,t,eps,debugflag)
- */
-
 #include <cmath>
 #include <cassert>
 

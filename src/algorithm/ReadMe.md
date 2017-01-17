@@ -9,6 +9,57 @@
 
 ##HrGrow Algo
 
+- info
+
+```cpp
+/**
+ * Implement a seeded heat-kernel clustering scheme.
+ * [bestset,cond,cut,vol,y,npushes] = hkgrow_mex(A,set,t,eps,debugflag)
+ */
+```
+
+- comment info
+
+```cpp
+/**
+ *  gsqexpmseed inputs:
+ *      G   -   adjacency matrix of an undirected graph
+ *      set -   seed vector: the indices of a seed set of vertices
+ *              around which cluster forms; normalized so set[i] = 1/set.size(); )
+ *  output:
+ *      y = exp(tP) * set
+ *              with infinity-norm accuracy of eps * e^t in the degree weighted norm
+ *  parameters:
+ *      t   - the value of t
+ *      eps - the accuracy
+ *      max_push_count - the total number of steps to run
+ *      Q - the queue data structure
+ */
+ 
+ 
+ /** Cluster will contain a list of all the vertices in the cluster
+  * @param seed_set the set of starting vertices to use
+  * @param t the value of t in the heat-kernel-PageRank computation
+  * @param eps the solution tolerance eps
+  * @param p the heat-kernel-pagerank vector
+  * @param r the residual vector
+  * @param a vector which supports .push_back to add vertices for the cluster
+  * @param stats a structure for statistics of the computation
+  */
+
+/** Grow a set of seeds via the heat-kernel.
+ * @param G sparserow version of input matrix A
+ * @param seeds a vector of input seeds seeds (index 0, N-1), and then
+ *          updated to have the final solution nodes as well.
+ * @param t the value of t in the heat-kernel
+ * @param eps the solution tolerance epsilon
+ * @param fcond the final conductance score of the set.
+ * @param fcut the final cut score of the set
+ * @param fvol the final volume score of the set
+ */
+
+```
+
 - parameters
 
 ```zsh
