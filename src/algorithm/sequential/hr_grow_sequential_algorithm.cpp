@@ -36,8 +36,9 @@ namespace yche {
         return push_coefficient_vec;
     }
 
-    size_t HKGrow::ExpandSeed(sparse_row &graph, sparse_vec &set, sparse_vec &y, double t, double eps,
-                              size_t max_push_count) {
+    size_t
+    HKGrow::ExpandSeed(sparse_row &graph, dict_wrapper &residual_dict, dict_wrapper &x_dict, double t, double eps,
+                       size_t max_push_count) {
         auto task_queue = queue<pair<size_t, size_t>>();
         auto taylor_deg = GetTaylorDegree(t, eps);
         auto psi_vec = ComputePsiVec(taylor_deg, t);
@@ -46,10 +47,10 @@ namespace yche {
         auto ri = 0ul;
         auto rij = 0.0;
         auto push_num = 0ul;
-        sparse_vec residual_vec;
+        dict_wrapper residual_vec;
 
 #define rentry(i, j, n) ((i)+(j)*(n))
-        for (auto &ele: set.weight_map_) {
+        for (auto &ele: residual_dict.weight_map_) {
             tie(ri, rij) = ele;
             residual_vec.weight_map_[rentry(ri, 0, graph.n_)] += rij;
             task_queue.emplace(ri, 0);
@@ -62,7 +63,7 @@ namespace yche {
 
             auto deg_of_i = graph.sr_degree(i);
             rij = residual_vec.weight_map_[ri];
-            y.weight_map_[i] += rij;
+            x_dict.weight_map_[i] += rij;
             residual_vec.weight_map_[ri] = 0;
 
             auto rijs = t * rij / (j + 1);
@@ -72,7 +73,7 @@ namespace yche {
             if (j == taylor_deg - 1) {
                 for (auto nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
                     auto dst_v = graph.edges_[nzi];
-                    y.weight_map_[dst_v] += update;
+                    x_dict.weight_map_[dst_v] += update;
                 }
             } else {
                 for (auto nzi = graph.vertices_[i]; nzi < graph.vertices_[i + 1]; ++nzi) {
@@ -94,9 +95,9 @@ namespace yche {
         return push_num;
     }
 
-    void HKGrow::SweepCut(sparse_row &G, sparse_vec &p, vector<size_t> &cluster, double *out_cond,
-                          double *out_volume, double *out_cut) {
-        auto pr_pairs = vector<pair<size_t, double>>(p.weight_map_.begin(), p.weight_map_.end());
+    void HKGrow::SweepCut(sparse_row &G, dict_wrapper &x_dict, vector<size_t> &cluster,
+                          double *out_cond, double *out_volume, double *out_cut) {
+        auto pr_pairs = vector<pair<size_t, double>>(x_dict.weight_map_.begin(), x_dict.weight_map_.end());
         sort(pr_pairs.begin(), pr_pairs.end(), [](auto &&left, auto &&right) { return left.second > right.second; });
 
         auto conductance_vec = vector<double>(pr_pairs.size());
@@ -142,19 +143,20 @@ namespace yche {
 
 
     int HKGrow::HyperCluster(sparse_row &G, const vector<size_t> &seed_set, double t, double eps,
-                             sparse_vec &p, sparse_vec &r, vector<size_t> &cluster, local_hkpr_stats *stats) {
+                             dict_wrapper &x_dict, dict_wrapper &residual_dict, vector<size_t> &cluster,
+                             local_hkpr_stats *stats) {
         auto max_deg = 0ul;
         for (auto i = 0; i < seed_set.size(); ++i) {
             auto seed_vertex = seed_set[i];
             auto v_degree = G.sr_degree(seed_vertex);
-            r.weight_map_[seed_vertex] = 1.0 / seed_set.size();
+            residual_dict.weight_map_[seed_vertex] = 1.0 / seed_set.size();
             max_deg = max(max_deg, v_degree);
         }
 
-        auto step_num = ExpandSeed(G, r, p, t, eps, static_cast<size_t >(ceil(pow(G.n_, 1.5))));
+        auto step_num = ExpandSeed(G, residual_dict, x_dict, t, eps, static_cast<size_t >(ceil(pow(G.n_, 1.5))));
 
         if (stats) { stats->steps = step_num; }
-        if (stats) { stats->support = r.weight_map_.size(); }
+        if (stats) { stats->support = residual_dict.weight_map_.size(); }
         double *out_cond = nullptr;
         double *out_volume = nullptr;
         double *out_cut = nullptr;
@@ -162,15 +164,17 @@ namespace yche {
         if (stats) { out_volume = &stats->volume; }
         if (stats) { out_cut = &stats->cut; }
 
-        if (step_num == 0) { p = r; }
-        for (auto &ele:p.weight_map_) { ele.second *= (1.0 / max(G.sr_degree(ele.first), static_cast<size_t >(1))); }
-        SweepCut(G, p, cluster, out_cond, out_volume, out_cut);
+        if (step_num == 0) { x_dict = residual_dict; }
+        for (auto &ele:x_dict.weight_map_) {
+            ele.second *= (1.0 / max(G.sr_degree(ele.first), static_cast<size_t >(1)));
+        }
+        SweepCut(G, x_dict, cluster, out_cond, out_volume, out_cut);
         return 0;
     }
 
     void HKGrow::ExecuteHRGRow(sparse_row &G, vector<size_t> &seeds, double t, double eps, double &f_cond,
-                               double &f_cut, double &f_vol, sparse_vec &p, double &num_push) {
-        sparse_vec r;
+                               double &f_cut, double &f_vol, dict_wrapper &p, double &num_push) {
+        dict_wrapper r;
         vector<size_t> best_cluster_vec;
         local_hkpr_stats stats;
 

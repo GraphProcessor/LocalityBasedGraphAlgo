@@ -19,7 +19,7 @@
 namespace yche {
     using namespace std;
 
-    struct sparse_vec {
+    struct dict_wrapper {
         unordered_map<size_t, double> weight_map_;
 
         double get(size_t index, double default_value = 0.0) {
@@ -60,18 +60,18 @@ namespace yche {
 
     class HKGrow {
     public:
-        size_t ExpandSeed(sparse_row &graph, sparse_vec &set, sparse_vec &y,
+        size_t ExpandSeed(sparse_row &graph, dict_wrapper &residual_dict, dict_wrapper &x_dict,
                           double t, double eps, size_t max_push_count);
 
-        void SweepCut(sparse_row &G, sparse_vec &p, vector<size_t> &cluster,
+        void SweepCut(sparse_row &G, dict_wrapper &x_dict, vector<size_t> &cluster,
                       double *out_cond, double *out_volume, double *out_cut);
 
         int HyperCluster(sparse_row &G, const vector<size_t> &seed_set, double t, double eps,
-                         sparse_vec &p, sparse_vec &r, vector<size_t> &cluster,
+                         dict_wrapper &x_dict, dict_wrapper &residual_dict, vector<size_t> &cluster,
                          local_hkpr_stats *stats);
 
         void ExecuteHRGRow(sparse_row &G, vector<size_t> &seeds, double t, double eps, double &f_cond, double &f_cut,
-                           double &f_vol, sparse_vec &p, double &num_push);
+                           double &f_vol, dict_wrapper &p, double &num_push);
 
     private:
         size_t GetTaylorDegree(double t, double eps);

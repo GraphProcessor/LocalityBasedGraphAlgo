@@ -157,7 +157,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     vector<mwIndex> seeds;
     copy_array_to_index_vector(set, seeds);
-    sparse_vec hkpr;
+    dict_wrapper hkpr;
 
     ExecuteHRGRow(&r, seeds, t, eps, mxGetPr(cond), mxGetPr(cut), mxGetPr(vol), hkpr, mxGetPr(npushes));
 
@@ -174,7 +174,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         mxArray *hkvec = mxCreateDoubleMatrix(r.n_, 1, mxREAL);
         plhs[4] = hkvec;
         double *ci = mxGetPr(hkvec);
-        for (sparse_vec:: auto it = hkpr.weight_map_.begin(), itend = hkpr.weight_map_.end();
+        for (dict_wrapper:: auto it = hkpr.weight_map_.begin(), itend = hkpr.weight_map_.end();
              it != itend; ++it) {
             ci[it->first] = it->second;
         }
