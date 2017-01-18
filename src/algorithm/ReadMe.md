@@ -9,6 +9,31 @@
 
 ##HrGrow Algo
 
+- sparse vec
+
+```cpp
+ struct SpareseVec {
+        unordered_map<size_t, double> weight_map_;
+
+        double get(size_t index, double default_value = 0.0) {
+            auto it = weight_map_.find(index);
+            return it == weight_map_.end() ? default_value : it->second;
+        }
+
+        double sum() {
+            return accumulate(weight_map_.begin(), weight_map_.end(), 0,
+                              [](auto &&left, auto &&right) { return left + right.second; });
+        }
+
+        size_t max_index() {
+            return weight_map_.size() == 0 ? 0 :
+                   max_element(weight_map_.begin(), weight_map_.end(),
+                               [](auto &&left, auto &&right) { return left.second < right.second; })->first;
+        }
+    };
+
+```
+
 - info
 
 ```cpp
@@ -148,7 +173,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         eps = mxGetScalar(prhs[3]);
     }
 
-    sparse_row r;
+    SparseRow r;
     r.m_ = mxGetM(mat);
     r.n_ = mxGetN(mat);
     r.vertices_ = mxGetJc(mat);
@@ -157,7 +182,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     vector<mwIndex> seeds;
     copy_array_to_index_vector(set, seeds);
-    dict_wrapper hkpr;
+    SpareseVec hkpr;
 
     ExecuteHRGRow(&r, seeds, t, eps, mxGetPr(cond), mxGetPr(cut), mxGetPr(vol), hkpr, mxGetPr(npushes));
 
@@ -174,7 +199,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         mxArray *hkvec = mxCreateDoubleMatrix(r.n_, 1, mxREAL);
         plhs[4] = hkvec;
         double *ci = mxGetPr(hkvec);
-        for (dict_wrapper:: auto it = hkpr.weight_map_.begin(), itend = hkpr.weight_map_.end();
+        for (SpareseVec:: auto it = hkpr.weight_map_.begin(), itend = hkpr.weight_map_.end();
              it != itend; ++it) {
             ci[it->first] = it->second;
         }
