@@ -5,11 +5,6 @@
 #include "hr_grow_sequential_algorithm.h"
 
 namespace yche {
-    double GetVal(SpareseVec &my_dict, size_t index, double default_value = 0.0) {
-        auto it = my_dict.find(index);
-        return it == my_dict.end() ? default_value : it->second;
-    }
-
     size_t HKGrow::GetTaylorDegree(double t, double eps) {
         auto eps_exp_t = eps * exp(t);
         auto error = exp(t) - 1;
@@ -78,11 +73,11 @@ namespace yche {
                 for (auto nzi = graph_ptr_->vertices_[i]; nzi < graph_ptr_->vertices_[i + 1]; ++nzi) {
                     auto dst_v = graph_ptr_->edges_[nzi];
                     auto re = rentry(dst_v, j + 1, graph_ptr_->n_);
-                    auto re_old = GetVal(r_dict, re);
+                    auto re_old = r_dict[re];
                     auto re_new = re_old + update;
-                    double dv = graph_ptr_->sr_degree(dst_v);
                     r_dict[re] = re_new;
-                    if (re_new >= dv * push_coefficient_vec_[j + 1] && re_old < dv * push_coefficient_vec_[j + 1]) {
+                    if (re_new >= graph_ptr_->sr_degree(dst_v) * push_coefficient_vec_[j + 1] &&
+                        re_old < graph_ptr_->sr_degree(dst_v) * push_coefficient_vec_[j + 1]) {
                         task_queue.emplace(dst_v, j + 1);
                     }
                 }

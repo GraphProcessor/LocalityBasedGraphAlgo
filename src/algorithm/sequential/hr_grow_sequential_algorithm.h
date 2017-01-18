@@ -22,8 +22,6 @@ namespace yche {
 
     using SpareseVec=unordered_map<size_t, double>;
 
-    double GetVal(SpareseVec &my_dict, size_t index, double default_value);
-
     struct SparseRow {
         size_t n_, m_;
         size_t *vertices_;
