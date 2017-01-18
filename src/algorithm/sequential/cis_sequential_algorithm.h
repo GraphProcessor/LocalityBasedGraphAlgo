@@ -81,7 +81,7 @@ namespace yche {
 
         CommunityVec overlap_community_vec_;
 
-        Cis(unique_ptr<Graph> &graph_ptr, double lambda);
+        Cis(unique_ptr<Graph> graph_ptr, double lambda);
 
         CommunityVec ExecuteCis();
 

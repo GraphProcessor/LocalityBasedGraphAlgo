@@ -45,12 +45,12 @@ int main(int argc, char *argv[]) {
 
     auto vertex_dict = map<int, Vertex>();
     auto name_dict = map<int, int>();
-    auto graph_ptr = ConstructGraph(vertex_dict, name_dict, edges_vec);
 
     auto epsilon = 0.25;
     auto min_community_size = 1;
     auto max_iteration = 100;
-    auto demon_algo = Demon(epsilon, min_community_size, graph_ptr, max_iteration);
+    auto demon_algo = Demon(epsilon, min_community_size, ConstructGraph(vertex_dict, name_dict, edges_vec),
+                            max_iteration);
 
     demon_algo.ExecuteDemon();
     auto &arr_2d = demon_algo.overlap_community_vec_;

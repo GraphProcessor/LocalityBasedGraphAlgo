@@ -5,7 +5,7 @@
 #include "cis_sequential_algorithm.h"
 
 namespace yche {
-    Cis::Cis(unique_ptr<Cis::Graph> &graph_ptr, double lambda) : lambda_(lambda), graph_ptr_(std::move(graph_ptr)) {
+    Cis::Cis(unique_ptr<Cis::Graph> graph_ptr, double lambda) : lambda_(lambda), graph_ptr_(std::move(graph_ptr)) {
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) { vertices_.emplace_back(*vp.first); }
     }
 

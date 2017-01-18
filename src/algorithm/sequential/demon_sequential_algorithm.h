@@ -50,7 +50,7 @@ namespace yche {
 
         CommunityVec overlap_community_vec_;
 
-        Demon(double epsilon, int min_comm_size, unique_ptr<Graph> &graph_ptr, int max_iter) :
+        Demon(double epsilon, int min_comm_size, unique_ptr<Graph> graph_ptr, int max_iter) :
                 epsilon_(epsilon), min_comm_size_(min_comm_size), max_iter_(max_iter),
                 graph_ptr_(std::move(graph_ptr)) {}
 

@@ -46,9 +46,7 @@ int main(int argc, char *argv[]) {
 
     auto vertex_dict = unordered_map<int, Vertex>();
     auto name_dict = unordered_map<int, int>();
-    auto graph_ptr = ConstructGraph(vertex_dict, name_dict, edges_vec);
-
-    auto cis = Cis(graph_ptr, 0);
+    auto cis = Cis(ConstructGraph(vertex_dict, name_dict, edges_vec), 0);
 
     cis.ExecuteCis();
     auto &arr_2d = cis.overlap_community_vec_;
