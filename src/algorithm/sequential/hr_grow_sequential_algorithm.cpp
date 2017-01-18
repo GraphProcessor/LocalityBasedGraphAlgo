@@ -89,8 +89,7 @@ namespace yche {
         return push_num;
     }
 
-    void HKGrow::SweepCut(SpareseVec &x_dict, vector<size_t> &cluster,
-                          double *out_cond, double *out_volume, double *out_cut) {
+    SweepCutStatus HKGrow::SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) {
         for (auto &ele:x_dict) {
             ele.second *= (1.0 / max(graph_ptr_->sr_degree(ele.first), static_cast<size_t >(1)));
         }
@@ -131,15 +130,14 @@ namespace yche {
         auto min_iter = min_element(begin(cond_vec), end(cond_vec));
         auto min_cond = (min_iter == end(cond_vec) ? 0.0 : *min_iter);
         auto min_cond_idx = min_iter - begin(cond_vec);
-
-        if (out_cond) { *out_cond = min_cond; }
-        if (out_volume) { *out_volume = vol_vec[min_cond_idx]; }
-        if (out_cut) { *out_cut = cut_vec[min_cond_idx]; }
-
+        auto status = SweepCutStatus();
+        status.conductance = min_cond;
+        status.cut = cut_vec[min_cond_idx];
+        status.volume = vol_vec[min_cond_idx];
+        return status;
     }
 
-    int HKGrow::HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster,
-                             local_hkpr_stats *stats) {
+    SweepCutStatus HKGrow::HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster) {
         auto seed_dict = SpareseVec();
         for (auto &seed:seed_set) { seed_dict.emplace(seed, 1.0 / seed_set.size()); }
 
@@ -150,26 +148,18 @@ namespace yche {
 
         auto step_num = ExpandSeed(seed_dict, x_dict, static_cast<size_t >(ceil(pow(graph_ptr_->n_, 1.5))));
 
-        if (stats) { stats->steps = step_num; }
-        if (stats) { stats->support = seed_dict.size(); }
-        double *out_cond = nullptr;
-        double *out_volume = nullptr;
-        double *out_cut = nullptr;
-        if (stats) { out_cond = &stats->conductance; }
-        if (stats) { out_volume = &stats->volume; }
-        if (stats) { out_cut = &stats->cut; }
+        auto status = SweepCut(x_dict, cluster);
+        status.steps = step_num;
+        status.support = seed_dict.size();
         if (step_num == 0) { x_dict = seed_dict; }
 
-        SweepCut(x_dict, cluster, out_cond, out_volume, out_cut);
-        return 0;
+        return status;
     }
 
     void HKGrow::ExecuteHRGRow(vector<size_t> &seeds, double &f_cond, double &f_cut, double &f_vol,
                                SpareseVec &x_dict, double &num_push) {
         vector<size_t> best_cluster_vec;
-        local_hkpr_stats stats;
-
-        HyperCluster(seeds, x_dict, best_cluster_vec, &stats);
+        SweepCutStatus stats = HyperCluster(seeds, x_dict, best_cluster_vec);
         seeds = best_cluster_vec;
 
         num_push = stats.steps;

@@ -33,7 +33,7 @@ namespace yche {
         }
     };
 
-    struct local_hkpr_stats {
+    struct SweepCutStatus {
         double conductance;
         double volume;
         double support;
@@ -65,11 +65,9 @@ namespace yche {
         size_t ExpandSeed(SpareseVec &seed_dict, SpareseVec &x_dict,
                           size_t max_push_count);
 
-        void SweepCut(SpareseVec &x_dict, vector<size_t> &cluster,
-                      double *out_cond, double *out_volume, double *out_cut);
+        SweepCutStatus SweepCut(SpareseVec &x_dict, vector<size_t> &cluster);
 
-        int HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster,
-                         local_hkpr_stats *stats);
+        SweepCutStatus HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster);
 
     };
 
