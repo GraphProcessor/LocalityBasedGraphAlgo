@@ -78,7 +78,6 @@ namespace yche {
 
         CommunityVec PropagateLabel(const unique_ptr<SubGraph> &sub_graph_ptr, const Vertex &ego_vertex) const;
 
-
         void MergeToGlobal(CommunityVec &result);
     };
 }
