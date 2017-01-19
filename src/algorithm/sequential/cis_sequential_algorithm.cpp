@@ -248,7 +248,6 @@ namespace yche {
             community = SplitAndChoose(community.member_indices_);
 
         }
-
         //For Later Merge Usage
         auto member_vec = EntityIdxVec();
         member_vec.reserve(community.member_indices_.size());
@@ -257,7 +256,7 @@ namespace yche {
         return member_vec;
     }
 
-    double Cis::GetIntersectRatio(EntityIdxVec &left_community, EntityIdxVec &right_community) const {
+    double Cis::GetIntersectRatio(const EntityIdxVec &left_community, const EntityIdxVec &right_community) {
         auto intersect_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_intersection(left_community.begin(), left_community.end(),
                                          right_community.begin(), right_community.end(), intersect_set.begin());
@@ -266,7 +265,7 @@ namespace yche {
         return rate;
     }
 
-    EntityIdxVec Cis::GetUnion(EntityIdxVec &left_community, EntityIdxVec &right_community) const {
+    EntityIdxVec Cis::GetUnion(const EntityIdxVec &left_community, const EntityIdxVec &right_community) {
         auto union_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_union(left_community.begin(), left_community.end(),
                                   right_community.begin(), right_community.end(), union_set.begin());

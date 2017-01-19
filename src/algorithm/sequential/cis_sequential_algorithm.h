@@ -93,6 +93,10 @@ namespace yche {
 
         static double CalDensity(int size, double w_in, double w_out, double lambda);
 
+        static double GetIntersectRatio(const EntityIdxVec &left_community, const EntityIdxVec &right_community);
+
+        static EntityIdxVec GetUnion(const EntityIdxVec &left_community, const EntityIdxVec &right_community);
+
         double CalDensity(const Community &community) const;
 
         double CalDensity(const Community &community, const Entity &member, MutationType mutation_type) const;
@@ -113,7 +117,7 @@ namespace yche {
 
         void MutateStates(MutationType mutation_type, vector<Entity> to_check_list,
                           Community &community, EntityDict &expand_entity_dict,
-                          EntityDict &shrink_entity_dict, auto&& degree_cmp_obj, bool &change_flag,
+                          EntityDict &shrink_entity_dict, auto &&degree_cmp_obj, bool &change_flag,
                           property_map<Graph, vertex_index_t>::type &vertex_index_map,
                           property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
@@ -124,10 +128,6 @@ namespace yche {
         Community SplitAndChoose(EntityIdxSet &member_set) const;
 
         EntityIdxVec ExpandSeed(EntityIdxSet &entity_idx_set) const;
-
-        double GetIntersectRatio(EntityIdxVec &left_community, EntityIdxVec &right_community) const;
-
-        EntityIdxVec GetUnion(EntityIdxVec &left_community, EntityIdxVec &right_community) const;
 
         void MergeCommToGlobal(EntityIdxVec &result_community);
     };

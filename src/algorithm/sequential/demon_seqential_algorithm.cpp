@@ -5,7 +5,7 @@
 #include "demon_sequential_algorithm.h"
 
 namespace yche {
-    unique_ptr<Demon::SubGraph> Demon::ExtractEgoMinusEgo(Demon::Vertex &ego_vertex) const {
+    unique_ptr<Demon::SubGraph> Demon::ExtractEgoMinusEgo(const Demon::Vertex &ego_vertex) const {
         auto ego_net_ptr = make_unique<SubGraph>();
         auto sub_vertex_id_map = get(vertex_id, *ego_net_ptr);
         auto sub_vertex_index_map = get(vertex_index, *ego_net_ptr);
@@ -45,8 +45,8 @@ namespace yche {
         return ego_net_ptr;
     }
 
-    void Demon::PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_vertex,
-                                     std::mt19937 &rand_generator, int last_label_idx, int curr_label_idx,
+    void Demon::PropagateLabelSingle(const unique_ptr<SubGraph> &sub_graph_ptr, const SubGraphVertex &sub_graph_vertex,
+                                     mt19937 &rand_generator, int last_label_idx, int curr_label_idx,
                                      property_map<SubGraph, vertex_weight_t>::type &sub_vertex_weight_map,
                                      property_map<SubGraph, vertex_label_t>::type &sub_vertex_label_map) const {
         auto label_weight_map = map<int, double>();
@@ -91,8 +91,8 @@ namespace yche {
         }
     }
 
-    Demon::CommunityVec
-    Demon::GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, int curr_label_idx) const {
+    Demon::CommunityVec Demon::GetCommunityVec(const unique_ptr<SubGraph> &sub_graph_ptr, const Vertex &ego_vertex,
+                                               int curr_label_idx) const {
         auto sub_vertex_label_map = get(vertex_label, *sub_graph_ptr);
         auto sub_vertex_id_map = get(vertex_id, *sub_graph_ptr);
         auto vertex_index_map = get(vertex_index, *graph_ptr_);
@@ -123,7 +123,8 @@ namespace yche {
         return community_vec;
     }
 
-    Demon::CommunityVec Demon::PropagateLabel(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex) const {
+    Demon::CommunityVec Demon::PropagateLabel(const unique_ptr<SubGraph> &sub_graph_ptr,
+                                              const Vertex &ego_vertex) const {
         auto sub_vertex_weight_map = get(vertex_weight, *sub_graph_ptr);
         auto sub_vertex_label_map = get(vertex_label, *sub_graph_ptr);
         static thread_local random_device rand_d;
@@ -149,7 +150,7 @@ namespace yche {
         return community_vec;
     }
 
-    double Demon::GetIntersectRatio(const Community &left_community, const Community &right_community)  {
+    double Demon::GetIntersectRatio(const Community &left_community, const Community &right_community) {
         auto intersect_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_intersection(left_community.begin(), left_community.end(), right_community.begin(),
                                          right_community.end(), intersect_set.begin());
@@ -158,7 +159,7 @@ namespace yche {
         return rate;
     }
 
-    Demon::Community Demon::GetUnion(const Community &left_community, const Community &right_community)  {
+    Demon::Community Demon::GetUnion(const Community &left_community, const Community &right_community) {
         auto union_set = vector<int>(left_community.size() + right_community.size());
         auto iter_end = set_union(left_community.begin(), left_community.end(), right_community.begin(),
                                   right_community.end(), union_set.begin());

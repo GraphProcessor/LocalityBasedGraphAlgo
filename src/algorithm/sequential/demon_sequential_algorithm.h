@@ -66,16 +66,17 @@ namespace yche {
 
         static Community GetUnion(const Community &left_community, const Community &right_community);
 
-        unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex &ego_vertex) const;
+        unique_ptr<SubGraph> ExtractEgoMinusEgo(const Vertex &ego_vertex) const;
 
-        void PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_vertex,
+        void PropagateLabelSingle(const unique_ptr<SubGraph> &sub_graph_ptr, const SubGraphVertex &sub_graph_vertex,
                                   mt19937 &rand_generator, int last_label_idx, int curr_label_idx,
                                   property_map<SubGraph, vertex_weight_t>::type &sub_vertex_weight_map,
                                   property_map<SubGraph, vertex_label_t>::type &sub_vertex_label_map) const;
 
-        CommunityVec GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, int curr_label_idx) const;
+        CommunityVec GetCommunityVec(const unique_ptr<SubGraph> &sub_graph_ptr,
+                                     const Vertex &ego_vertex, int curr_label_idx) const;
 
-        CommunityVec PropagateLabel(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex) const;
+        CommunityVec PropagateLabel(const unique_ptr<SubGraph> &sub_graph_ptr, const Vertex &ego_vertex) const;
 
 
         void MergeToGlobal(CommunityVec &result);
