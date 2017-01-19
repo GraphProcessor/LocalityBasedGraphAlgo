@@ -27,7 +27,8 @@ namespace yche {
         return psi_vec;
     }
 
-    vector<double> HKGrow::ComputePushCoefficientVec(size_t taylor_deg, double eps, double t, vector<double> &psi_vec) {
+    vector<double> HKGrow::ComputePushCoefficientVec(size_t taylor_deg, double eps, double t,
+                                                     const vector<double> &psi_vec) {
         auto push_coefficient_vec = vector<double>(taylor_deg + 1, 0);
         push_coefficient_vec[0] = ((exp(t) * eps) / (double) taylor_deg) / psi_vec[0];
         for (int k = 1; k <= taylor_deg; k++) {
@@ -36,7 +37,7 @@ namespace yche {
         return push_coefficient_vec;
     }
 
-    size_t HKGrow::ExpandSeed(SpareseVec &seed_dict, SpareseVec &x_dict, size_t max_push_count) {
+    size_t HKGrow::DiffuseWeight(const SpareseVec &seed_dict, SpareseVec &x_dict, size_t max_push_count) const {
         auto task_queue = queue<pair<size_t, size_t>>();
         auto ri = 0ul;
         auto rij = 0.0;
@@ -89,7 +90,7 @@ namespace yche {
         return push_num;
     }
 
-    SweepCutStatus HKGrow::SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) {
+    SweepCutStatus HKGrow::SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) const {
         for (auto &ele:x_dict) {
             ele.second *= (1.0 / max(graph_ptr_->sr_degree(ele.first), static_cast<size_t >(1)));
         }
@@ -131,13 +132,14 @@ namespace yche {
         auto min_cond = (min_iter == end(cond_vec) ? 0.0 : *min_iter);
         auto min_cond_idx = min_iter - begin(cond_vec);
         auto status = SweepCutStatus();
-        status.conductance = min_cond;
-        status.cut = cut_vec[min_cond_idx];
-        status.volume = vol_vec[min_cond_idx];
+        status.conductance_ = min_cond;
+        status.cut_ = cut_vec[min_cond_idx];
+        status.volume_ = vol_vec[min_cond_idx];
         return status;
     }
 
-    SweepCutStatus HKGrow::HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster) {
+    SweepCutStatus HKGrow::HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict,
+                                        vector<size_t> &cluster) const {
         auto seed_dict = SpareseVec();
         for (auto &seed:seed_set) { seed_dict.emplace(seed, 1.0 / seed_set.size()); }
 
@@ -146,11 +148,11 @@ namespace yche {
         });
         auto max_deg = (seed_iter == seed_set.end() ? 0ul : graph_ptr_->sr_degree(*seed_iter));
 
-        auto step_num = ExpandSeed(seed_dict, x_dict, static_cast<size_t >(ceil(pow(graph_ptr_->n_, 1.5))));
+        auto step_num = DiffuseWeight(seed_dict, x_dict, static_cast<size_t >(ceil(pow(graph_ptr_->n_, 1.5))));
 
         auto status = SweepCut(x_dict, cluster);
-        status.steps = step_num;
-        status.support = seed_dict.size();
+        status.steps_ = step_num;
+        status.support_ = seed_dict.size();
         if (step_num == 0) { x_dict = seed_dict; }
 
         return status;
@@ -162,10 +164,10 @@ namespace yche {
         SweepCutStatus stats = HyperCluster(seeds, x_dict, best_cluster_vec);
         seeds = best_cluster_vec;
 
-        num_push = stats.steps;
-        f_cond = stats.conductance;
-        f_cut = stats.cut;
-        f_vol = stats.volume;
+        num_push = stats.steps_;
+        f_cond = stats.conductance_;
+        f_cut = stats.cut_;
+        f_vol = stats.volume_;
     }
 
     HKGrow::HKGrow(unique_ptr<SparseRow> graph_ptr, double t, double eps) : t_(t), graph_ptr_(move(graph_ptr)) {

@@ -39,7 +39,7 @@
 ```cpp
 /**
  * Implement a seeded heat-kernel clustering scheme.
- * [bestset,cond,cut,vol,y,npushes] = hkgrow_mex(A,set,t,eps,debugflag)
+ * [bestset,cond,cut_,vol,y,npushes] = hkgrow_mex(A,set,t,eps,debugflag)
  */
 ```
 
@@ -107,8 +107,8 @@
  *          updated to have the final solution nodes as well.
  * @param t the value of t in the heat-kernel
  * @param eps the solution tolerance epsilon
- * @param fcond the final conductance score of the set.
- * @param fcut the final cut score of the set
+ * @param fcond the final conductance_ score of the set.
+ * @param fcut the final cut_ score of the set
  * @param fvol the final volume score of the set
  */
 
@@ -146,7 +146,7 @@
 ```zsh
 
 /*
-// [bestset,cond,cut,vol,y,npushes] = hkgrow_mex(A,set,t,eps,debugflag)
+// [bestset,cond,cut_,vol,y,npushes] = hkgrow_mex(A,set,t,eps,debugflag)
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     if (nrhs == 5) {
         debugflag = (int) mxGetScalar(prhs[4]);
@@ -156,12 +156,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     const mxArray *set = prhs[1];
 
     mxArray *cond = mxCreateDoubleMatrix(1, 1, mxREAL);
-    mxArray *cut = mxCreateDoubleMatrix(1, 1, mxREAL);
+    mxArray *cut_ = mxCreateDoubleMatrix(1, 1, mxREAL);
     mxArray *vol = mxCreateDoubleMatrix(1, 1, mxREAL);
     mxArray *npushes = mxCreateDoubleMatrix(1, 1, mxREAL);
 
     if (nlhs > 1) { plhs[1] = cond; }
-    if (nlhs > 2) { plhs[2] = cut; }
+    if (nlhs > 2) { plhs[2] = cut_; }
     if (nlhs > 3) { plhs[3] = vol; }
     if (nlhs > 5) { plhs[5] = npushes; }
 
@@ -184,9 +184,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     copy_array_to_index_vector(set, seeds);
     SpareseVec hkpr;
 
-    ExecuteHRGRow(&r, seeds, t, eps, mxGetPr(cond), mxGetPr(cut), mxGetPr(vol), hkpr, mxGetPr(npushes));
+    ExecuteHRGRow(&r, seeds, t, eps, mxGetPr(cond), mxGetPr(cut_), mxGetPr(vol), hkpr, mxGetPr(npushes));
 
-    if (nlhs > 0) { // sets output "bestset" to the set of best conductance
+    if (nlhs > 0) { // sets output "bestset" to the set of best conductance_
         mxArray *cassign = mxCreateDoubleMatrix(seeds.size(), 1, mxREAL);
         plhs[0] = cassign;
 

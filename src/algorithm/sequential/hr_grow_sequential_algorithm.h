@@ -34,11 +34,11 @@ namespace yche {
     };
 
     struct SweepCutStatus {
-        double conductance;
-        double volume;
-        double support;
-        double steps;
-        double cut;
+        double conductance_;
+        double volume_;
+        double support_;
+        double steps_;
+        double cut_;
     };
 
     class HKGrow {
@@ -60,14 +60,13 @@ namespace yche {
         static vector<double> ComputePsiVec(size_t taylor_deg, double t);
 
         static vector<double> ComputePushCoefficientVec(size_t taylor_deg, double eps, double t,
-                                                        vector<double> &psi_vec);
+                                                        const vector<double> &psi_vec);
 
-        size_t ExpandSeed(SpareseVec &seed_dict, SpareseVec &x_dict,
-                          size_t max_push_count);
+        size_t DiffuseWeight(const SpareseVec &seed_dict, SpareseVec &x_dict, size_t max_push_count) const;
 
-        SweepCutStatus SweepCut(SpareseVec &x_dict, vector<size_t> &cluster);
+        SweepCutStatus SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) const;
 
-        SweepCutStatus HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster);
+        SweepCutStatus HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster) const;
 
     };
 
