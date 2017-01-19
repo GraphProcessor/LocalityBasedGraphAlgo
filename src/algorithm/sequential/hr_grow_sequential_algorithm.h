@@ -17,16 +17,19 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <boost/graph/compressed_sparse_row_graph.hpp>
+
 namespace yche {
     using namespace std;
 
     using SpareseVec=unordered_map<size_t, double>;
 
+//    using SparseRow=boost::compressed_sparse_row_graph<boost::undirectedS>
+
     struct SparseRow {
         size_t n_, m_;
         size_t *vertices_;
         size_t *edges_;
-        double *weight_;
 
         size_t sr_degree(size_t u) {
             return vertices_[u + 1] - vertices_[u];
@@ -45,8 +48,7 @@ namespace yche {
     public:
         HKGrow(unique_ptr<SparseRow> graph_ptr, double t, double eps);
 
-        void ExecuteHRGRow(vector<size_t> &seeds, double &f_cond, double &f_cut,
-                           double &f_vol, SpareseVec &x_dict, double &num_push);
+        void ExecuteHRGRow(vector<size_t> &seeds, SpareseVec &x_dict);
 
     private:
         unique_ptr<SparseRow> graph_ptr_;
@@ -64,10 +66,9 @@ namespace yche {
 
         size_t DiffuseWeight(const SpareseVec &seed_dict, SpareseVec &x_dict, size_t max_push_count) const;
 
-        LocalSweepCutStatus SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) const;
+        auto SweepCut(SpareseVec &x_dict) const;
 
-        LocalSweepCutStatus HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict,
-                                         vector<size_t> &cluster) const;
+        auto HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict) const;
 
     };
 
