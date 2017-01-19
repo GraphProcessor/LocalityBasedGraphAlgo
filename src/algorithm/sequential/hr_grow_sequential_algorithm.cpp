@@ -90,7 +90,7 @@ namespace yche {
         return push_num;
     }
 
-    SweepCutStatus HKGrow::SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) const {
+    LocalSweepCutStatus HKGrow::SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) const {
         for (auto &ele:x_dict) {
             ele.second *= (1.0 / max(graph_ptr_->sr_degree(ele.first), static_cast<size_t >(1)));
         }
@@ -131,14 +131,14 @@ namespace yche {
         auto min_iter = min_element(begin(cond_vec), end(cond_vec));
         auto min_cond = (min_iter == end(cond_vec) ? 0.0 : *min_iter);
         auto min_cond_idx = min_iter - begin(cond_vec);
-        auto status = SweepCutStatus();
+        auto status = LocalSweepCutStatus();
         status.conductance_ = min_cond;
         status.cut_ = cut_vec[min_cond_idx];
         status.volume_ = vol_vec[min_cond_idx];
         return status;
     }
 
-    SweepCutStatus HKGrow::HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict,
+    LocalSweepCutStatus HKGrow::HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict,
                                         vector<size_t> &cluster) const {
         auto seed_dict = SpareseVec();
         for (auto &seed:seed_set) { seed_dict.emplace(seed, 1.0 / seed_set.size()); }
@@ -161,7 +161,7 @@ namespace yche {
     void HKGrow::ExecuteHRGRow(vector<size_t> &seeds, double &f_cond, double &f_cut, double &f_vol,
                                SpareseVec &x_dict, double &num_push) {
         vector<size_t> best_cluster_vec;
-        SweepCutStatus stats = HyperCluster(seeds, x_dict, best_cluster_vec);
+        LocalSweepCutStatus stats = HyperCluster(seeds, x_dict, best_cluster_vec);
         seeds = best_cluster_vec;
 
         num_push = stats.steps_;

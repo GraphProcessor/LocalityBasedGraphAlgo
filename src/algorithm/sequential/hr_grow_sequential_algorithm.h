@@ -33,7 +33,7 @@ namespace yche {
         }
     };
 
-    struct SweepCutStatus {
+    struct LocalSweepCutStatus {
         double conductance_;
         double volume_;
         double support_;
@@ -64,9 +64,10 @@ namespace yche {
 
         size_t DiffuseWeight(const SpareseVec &seed_dict, SpareseVec &x_dict, size_t max_push_count) const;
 
-        SweepCutStatus SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) const;
+        LocalSweepCutStatus SweepCut(SpareseVec &x_dict, vector<size_t> &cluster) const;
 
-        SweepCutStatus HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict, vector<size_t> &cluster) const;
+        LocalSweepCutStatus HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict,
+                                         vector<size_t> &cluster) const;
 
     };
 
