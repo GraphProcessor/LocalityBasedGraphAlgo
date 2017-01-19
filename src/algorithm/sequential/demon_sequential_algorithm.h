@@ -62,6 +62,10 @@ namespace yche {
         int min_comm_size_;
         int max_iter_;
 
+        static double GetIntersectRatio(const Community &left_community, const Community &right_community);
+
+        static Community GetUnion(const Community &left_community, const Community &right_community);
+
         unique_ptr<SubGraph> ExtractEgoMinusEgo(Vertex &ego_vertex) const;
 
         void PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_vertex,
@@ -73,9 +77,6 @@ namespace yche {
 
         CommunityVec PropagateLabel(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex) const;
 
-        double GetIntersectRatio(Community &left_community, Community &right_community) const;
-
-        Community GetUnion(Community &left_community, Community &right_community) const;
 
         void MergeToGlobal(CommunityVec &result);
     };
