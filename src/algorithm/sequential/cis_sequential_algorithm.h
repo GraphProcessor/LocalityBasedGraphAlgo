@@ -91,39 +91,39 @@ namespace yche {
         vector<Vertex> vertices_;
         double lambda_;
 
-        double CalDensity(int size, double w_in, double w_out, double lambda) const;
+        static double CalDensity(int size, double w_in, double w_out, double lambda);
 
-        double CalDensity(Community &community) const;
+        double CalDensity(const Community &community) const;
 
-        double CalDensity(Community &community, Entity &member, MutationType mutation_type) const;
+        double CalDensity(const Community &community, const Entity &member, MutationType mutation_type) const;
 
         void InitializeSeeds(const EntityIdxSet &seed, Community &community, EntityDict &member_dict,
                              EntityDict &neighbor_dict, property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                             property_map<Graph, edge_weight_t>::type &edge_weight_map);
+                             property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
         void UpdateForAddNeighbor(const Vertex &mutate_vertex, Community &community,
                                   EntityDict &member_dict, EntityDict &neighbor_dict,
                                   property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                  property_map<Graph, edge_weight_t>::type &edge_weight_map);
+                                  property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
         void UpdateForRemoveMember(const Vertex &mutate_vertex, Community &community,
                                    EntityDict &member_dict, EntityDict &neighbor_dict,
                                    property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                   property_map<Graph, edge_weight_t>::type &edge_weight_map);
+                                   property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
         void MutateStates(MutationType mutation_type, vector<Entity> to_check_list,
                           Community &community, EntityDict &expand_entity_dict,
-                          EntityDict &shrink_entity_dict, auto degree_cmp_obj, bool &change_flag,
+                          EntityDict &shrink_entity_dict, auto&& degree_cmp_obj, bool &change_flag,
                           property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                          property_map<Graph, edge_weight_t>::type &edge_weight_map);
+                          property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
         Community FindConnectedComponent(EntityIdxSet &member_set, EntityIdxSet &mark_set, int first_mem_idx,
                                          property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                                         property_map<Graph, edge_weight_t>::type &edge_weight_map);
+                                         property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
-        Community SplitAndChoose(EntityIdxSet &member_set);
+        Community SplitAndChoose(EntityIdxSet &member_set) const;
 
-        EntityIdxVec ExpandSeed(EntityIdxSet &entity_idx_set);
+        EntityIdxVec ExpandSeed(EntityIdxSet &entity_idx_set) const;
 
         double GetIntersectRatio(EntityIdxVec &left_community, EntityIdxVec &right_community) const;
 

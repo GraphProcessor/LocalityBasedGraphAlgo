@@ -48,7 +48,7 @@ namespace yche {
     void Demon::PropagateLabelSingle(unique_ptr<SubGraph> &sub_graph_ptr, SubGraphVertex &sub_graph_vertex,
                                      std::mt19937 &rand_generator, int last_label_idx, int curr_label_idx,
                                      property_map<SubGraph, vertex_weight_t>::type &sub_vertex_weight_map,
-                                     property_map<SubGraph, vertex_label_t>::type &sub_vertex_label_map) {
+                                     property_map<SubGraph, vertex_label_t>::type &sub_vertex_label_map) const{
         auto label_weight_map = map<int, double>();
         //Label Propagation
         for (auto vp_inner = adjacent_vertices(sub_graph_vertex, *sub_graph_ptr);
@@ -92,7 +92,7 @@ namespace yche {
     }
 
     Demon::CommunityVec
-    Demon::GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, int curr_label_idx) {
+    Demon::GetCommunityVec(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex, int curr_label_idx) const{
         auto sub_vertex_label_map = get(vertex_label, *sub_graph_ptr);
         auto sub_vertex_id_map = get(vertex_id, *sub_graph_ptr);
         auto vertex_index_map = get(vertex_index, *graph_ptr_);
@@ -123,7 +123,7 @@ namespace yche {
         return community_vec;
     }
 
-    Demon::CommunityVec Demon::PropagateLabel(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex) {
+    Demon::CommunityVec Demon::PropagateLabel(unique_ptr<SubGraph> &sub_graph_ptr, Vertex &ego_vertex) const{
         auto sub_vertex_weight_map = get(vertex_weight, *sub_graph_ptr);
         auto sub_vertex_label_map = get(vertex_label, *sub_graph_ptr);
         static thread_local random_device rand_d;
