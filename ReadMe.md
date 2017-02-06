@@ -1,6 +1,11 @@
 #Parallelization for Locality-Based Algos
+##Issues
+In community merging part for cis, best strategy is not applied, since cis expect totally including relationship. 
+Extra cost is introduced in current implementation, a better solution can be that, build index for large community, 
+iterate through small community and judge whether v in small community is found in the large community.
+
 ##Graph Algorithms
-Here, graph algortihms are those locality-based overlapping community detection algorithms.
+Here, graph algorithms are those locality-based overlapping community detection algorithms.
 
 ##Source Code
 
@@ -21,3 +26,4 @@ content | detail
 ##Dataset
 - [small_datasets/collaboration_edges_input.csv](small_datasets/collaboration_edges_input.csv), from uci repo
 - [small_datasets/karate_edges_input.csv](small_datasets/karate_edges_input.csv), from uci repo
+

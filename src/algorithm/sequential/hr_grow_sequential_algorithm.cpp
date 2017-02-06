@@ -104,6 +104,7 @@ namespace yche {
         auto rank_map = unordered_map<size_t, size_t>();
         for (auto i = 0ul; i < pr_pairs.size(); i++) { rank_map[pr_pairs[i].first] = i; }
 
+        //since undirectedS is not implemented for CSR, each undirected edge is counted twice
         auto vol_of_graph = num_edges(*graph_ptr_) / 2;
         auto vol_of_set = 0ul;
         auto cut_of_set = 0ul;
