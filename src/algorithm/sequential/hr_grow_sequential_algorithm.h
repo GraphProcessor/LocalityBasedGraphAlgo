@@ -17,24 +17,13 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <boost/graph/iteration_macros.hpp>
 #include <boost/graph/compressed_sparse_row_graph.hpp>
 
 namespace yche {
     using namespace std;
-
+    using namespace boost;
     using SpareseVec=unordered_map<size_t, double>;
-
-//    using SparseRow=boost::compressed_sparse_row_graph<boost::undirectedS>
-
-    struct SparseRow {
-        size_t n_, m_;
-        size_t *vertices_;
-        size_t *edges_;
-
-        size_t sr_degree(size_t u) {
-            return vertices_[u + 1] - vertices_[u];
-        }
-    };
 
     struct LocalSweepCutStatus {
         double conductance_;
@@ -46,12 +35,14 @@ namespace yche {
 
     class HKGrow {
     public:
-        HKGrow(unique_ptr<SparseRow> graph_ptr, double t, double eps);
+        using Graph=compressed_sparse_row_graph<>;
+
+        HKGrow(unique_ptr<Graph> graph_ptr, double t, double eps);
 
         void ExecuteHRGRow(vector<size_t> &seeds, SpareseVec &x_dict);
 
     private:
-        unique_ptr<SparseRow> graph_ptr_;
+        unique_ptr<Graph> graph_ptr_;
         double t_;
         size_t taylor_deg_;
         vector<double> psi_vec_;

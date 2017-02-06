@@ -131,7 +131,7 @@
                     auto re = rentry(dst_v, j + 1, graph.n_);
                     auto re_old = residual_vec.get(re);
                     auto re_new = re_old + update;
-                    double dv = graph.sr_degree(dst_v);
+                    double dv = graph.out_degree(dst_v);
                     residual_vec.weight_map_[re] = re_new;
                     if (re_new >= dv * push_coefficient_vec[j + 1] && re_old < dv * push_coefficient_vec[j + 1]) {
                         task_queue.emplace(dst_v, j + 1);
