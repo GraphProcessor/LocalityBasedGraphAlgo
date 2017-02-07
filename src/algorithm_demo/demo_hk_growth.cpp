@@ -48,4 +48,5 @@ int main(int argc, char *argv[]) {
     auto hkgrow_algo = HKGrow(ConstructGraph(vertex_dict, name_dict, edges_vec), 15, 0.0001);
     auto arr_2d = std::move(hkgrow_algo.ExecuteHRGRow());
     cout << arr_2d << endl;
+    cout << "comm size:" << arr_2d.size() << endl;
 }
