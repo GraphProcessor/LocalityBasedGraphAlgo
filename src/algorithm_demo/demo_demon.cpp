@@ -52,8 +52,7 @@ int main(int argc, char *argv[]) {
     auto demon_algo = Demon(epsilon, min_community_size, ConstructGraph(vertex_dict, name_dict, edges_vec),
                             max_iteration);
 
-    demon_algo.ExecuteDemon();
-    auto &arr_2d = demon_algo.overlap_community_vec_;
+    auto arr_2d = std::move(demon_algo.ExecuteDemon());
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
 
     cout << "idx result:" << arr_2d << endl;

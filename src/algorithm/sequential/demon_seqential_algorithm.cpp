@@ -193,12 +193,13 @@ namespace yche {
         }
     }
 
-    void Demon::ExecuteDemon() {
+    Demon::CommunityVec Demon::ExecuteDemon() {
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto ego_vertex = *vp.first;
             auto sub_graph_ptr = ExtractEgoMinusEgo(ego_vertex);
             auto community_vec = PropagateLabel(sub_graph_ptr, ego_vertex);
             MergeToGlobal(community_vec);
         }
+        return overlap_community_vec_;
     }
 }
