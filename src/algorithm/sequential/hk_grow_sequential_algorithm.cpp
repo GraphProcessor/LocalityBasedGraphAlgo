@@ -2,7 +2,7 @@
 // Created by cheyulin on 1/5/17.
 //
 
-#include "hr_grow_sequential_algorithm.h"
+#include "hk_grow_sequential_algorithm.h"
 
 namespace yche {
     HKGrow::HKGrow(unique_ptr<Graph> graph_ptr, double t, double eps) : t_(t), graph_ptr_(std::move(graph_ptr)) {
