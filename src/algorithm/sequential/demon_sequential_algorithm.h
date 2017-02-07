@@ -35,20 +35,18 @@ namespace yche {
     using namespace std;
 
     class Demon {
-    public:
+    private:
         using VertexProperties = property<vertex_weight_t, double, property<vertex_index_t, int>>;
-        using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties>;
-        using Vertex = graph_traits<Graph>::vertex_descriptor;
-
         using SubGraphVertexProperties = property<vertex_weight_t, double,
                 property<vertex_id_t, int, property<vertex_label_t, array<int, 2>>>>;
         using SubGraph = adjacency_list<hash_setS, vecS, undirectedS, SubGraphVertexProperties>;
         using SubGraphVertex = graph_traits<SubGraph>::vertex_descriptor;
-
         using Community = vector<int>;
         using CommunityVec = vector<Community>;
 
-        CommunityVec overlap_community_vec_;
+    public:
+        using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties>;
+        using Vertex = graph_traits<Graph>::vertex_descriptor;
 
         Demon(double epsilon, int min_comm_size, unique_ptr<Graph> graph_ptr, int max_iter) :
                 epsilon_(epsilon), min_comm_size_(min_comm_size), max_iter_(max_iter),
@@ -57,6 +55,7 @@ namespace yche {
         CommunityVec ExecuteDemon();
 
     private:
+        CommunityVec overlap_community_vec_;
         unique_ptr<Graph> graph_ptr_;
         double epsilon_;
         int min_comm_size_;

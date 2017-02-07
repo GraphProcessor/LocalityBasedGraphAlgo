@@ -35,16 +35,18 @@ namespace yche {
     };
 
     class HKGrow {
+    private:
+        using CommunityVec=vector<vector<size_t>>;
+
     public:
         using Graph=compressed_sparse_row_graph<>;
-        using CommunityVec=vector<vector<size_t>>;
-        CommunityVec overlap_community_vec_;
 
         HKGrow(unique_ptr<Graph> graph_ptr, double t, double eps);
 
         CommunityVec ExecuteHRGRow();
 
     private:
+        CommunityVec overlap_community_vec_;
         unique_ptr<Graph> graph_ptr_;
         double t_;
         size_t taylor_deg_;

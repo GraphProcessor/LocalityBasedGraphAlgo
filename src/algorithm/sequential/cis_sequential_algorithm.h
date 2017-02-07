@@ -72,21 +72,21 @@ namespace yche {
     };
 
     class Cis {
-    public:
+    private:
+        using CommunityVec=vector<EntityIdxVec>;
         using EdgeProperties = property<edge_weight_t, double>;
         using VertexProperties = property<vertex_index_t, int>;
+
+    public:
         using Graph = adjacency_list<hash_setS, vecS, undirectedS, VertexProperties, EdgeProperties>;
         using Vertex = graph_traits<Graph>::vertex_descriptor;
-        using CommunityVec=vector<EntityIdxVec>;
-
-        CommunityVec overlap_community_vec_;
 
         Cis(unique_ptr<Graph> graph_ptr, double lambda);
 
         CommunityVec ExecuteCis();
 
-
     private:
+        CommunityVec overlap_community_vec_;
         unique_ptr<Graph> graph_ptr_;
         vector<Vertex> vertices_;
         double lambda_;
