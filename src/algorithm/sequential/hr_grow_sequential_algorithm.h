@@ -24,6 +24,7 @@ namespace yche {
     using namespace std;
     using namespace boost;
     using SpareseVec=unordered_map<size_t, double>;
+    constexpr double DOUBLE_ACCURACY = 0.00001;
 
     struct LocalSweepCutStatus {
         double conductance_;
@@ -36,10 +37,12 @@ namespace yche {
     class HKGrow {
     public:
         using Graph=compressed_sparse_row_graph<>;
+        using CommunityVec=vector<vector<size_t>>;
+        CommunityVec overlap_community_vec_;
 
         HKGrow(unique_ptr<Graph> graph_ptr, double t, double eps);
 
-        void ExecuteHRGRow(vector<size_t> &seeds, SpareseVec &x_dict);
+        CommunityVec ExecuteHRGRow();
 
     private:
         unique_ptr<Graph> graph_ptr_;
@@ -47,6 +50,10 @@ namespace yche {
         size_t taylor_deg_;
         vector<double> psi_vec_;
         vector<double> push_coefficient_vec_;
+
+        static double GetIntersectRatio(const vector<size_t> &left_community, const vector<size_t> &right_community);
+
+        static vector<size_t> GetUnion(const vector<size_t> &left_community, const vector<size_t> &right_community);
 
         static size_t GetTaylorDegree(double t, double eps);
 
@@ -61,8 +68,7 @@ namespace yche {
 
         auto HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict) const;
 
+        void MergeCommToGlobal(vector<size_t> &result_community);
     };
-
-
 }
 #endif //CODES_YCHE_HR_GROW_SEQUENTIAL_ALGORITHM_H

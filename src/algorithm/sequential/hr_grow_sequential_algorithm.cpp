@@ -5,6 +5,12 @@
 #include "hr_grow_sequential_algorithm.h"
 
 namespace yche {
+    HKGrow::HKGrow(unique_ptr<Graph> graph_ptr, double t, double eps) : t_(t), graph_ptr_(std::move(graph_ptr)) {
+        taylor_deg_ = GetTaylorDegree(t, eps);
+        psi_vec_ = ComputePsiVec(taylor_deg_, t);
+        push_coefficient_vec_ = ComputePushCoefficientVec(taylor_deg_, eps, t, psi_vec_);
+    }
+
     size_t HKGrow::GetTaylorDegree(double t, double eps) {
         auto eps_exp_t = eps * exp(t);
         auto error = exp(t) - 1;
@@ -162,14 +168,51 @@ namespace yche {
         return status_cluster;
     }
 
-    void HKGrow::ExecuteHRGRow(vector<size_t> &seeds, SpareseVec &x_dict) {
-        auto stats = HyperCluster(seeds, x_dict);
+    double HKGrow::GetIntersectRatio(const vector<size_t> &left_community, const vector<size_t> &right_community) {
+        auto intersect_set = vector<int>(left_community.size() + right_community.size());
+        auto iter_end = set_intersection(left_community.begin(), left_community.end(),
+                                         right_community.begin(), right_community.end(), intersect_set.begin());
+        auto intersect_set_size = iter_end - intersect_set.begin();
+        auto rate = static_cast<double>(intersect_set_size) / min(left_community.size(), right_community.size());
+        return rate;
     }
 
-    HKGrow::HKGrow(unique_ptr<Graph> graph_ptr, double t, double eps) : t_(t), graph_ptr_(std::move(graph_ptr)) {
-        taylor_deg_ = GetTaylorDegree(t, eps);
-        psi_vec_ = ComputePsiVec(taylor_deg_, t);
-        push_coefficient_vec_ = ComputePushCoefficientVec(taylor_deg_, eps, t, psi_vec_);
+    vector<size_t> HKGrow::GetUnion(const vector<size_t> &left_community, const vector<size_t> &right_community) {
+        auto union_set = vector<size_t>(left_community.size() + right_community.size());
+        auto iter_end = set_union(left_community.begin(), left_community.end(),
+                                  right_community.begin(), right_community.end(), union_set.begin());
+        union_set.resize(static_cast<size_t >(iter_end - union_set.begin()));
+        return union_set;
     }
 
+    void HKGrow::MergeCommToGlobal(vector<size_t> &result_community) {
+        if (overlap_community_vec_.size() == 0) {
+            overlap_community_vec_.emplace_back(std::move(result_community));
+        } else {
+            auto is_insert = true;
+            for (auto &community:overlap_community_vec_) {
+                auto cover_rate = GetIntersectRatio(community, result_community);
+                if (cover_rate > 1 - DOUBLE_ACCURACY) {
+                    community = GetUnion(community, result_community);
+                    is_insert = false;
+                    break;
+                }
+            }
+            if (is_insert) {
+                overlap_community_vec_.emplace_back(std::move(result_community));
+            }
+        }
+    }
+
+    HKGrow::CommunityVec HKGrow::ExecuteHRGRow() {
+        auto x_dict = SpareseVec();
+        auto seeds = vector<size_t>();
+        seeds.reserve(num_vertices(*graph_ptr_));
+        auto vp = vertices(*graph_ptr_);
+        transform(vp.first, vp.second, back_inserter(seeds), [](auto &&val) { return val; });
+
+        auto stats_cluster = HyperCluster(seeds, x_dict);
+        MergeCommToGlobal(std::get<1>(stats_cluster));
+        return overlap_community_vec_;
+    }
 }
