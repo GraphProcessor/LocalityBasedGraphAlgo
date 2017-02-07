@@ -293,7 +293,6 @@ namespace yche {
     }
 
     Cis::CommunityVec Cis::ExecuteCis() {
-        auto community_vec = CommunityVec();
         auto vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         for (auto vp = vertices(*graph_ptr_); vp.first != vp.second; ++vp.first) {
             auto vertex = *vp.first;
@@ -302,6 +301,6 @@ namespace yche {
             auto result_community = ExpandSeed(partial_comm_members);
             MergeCommToGlobal(result_community);
         }
-        return community_vec;
+        return overlap_community_vec_;
     }
 }

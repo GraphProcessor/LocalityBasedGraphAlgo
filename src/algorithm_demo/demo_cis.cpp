@@ -48,8 +48,7 @@ int main(int argc, char *argv[]) {
     auto name_dict = unordered_map<int, int>();
     auto cis = Cis(ConstructGraph(vertex_dict, name_dict, edges_vec), 0);
 
-    cis.ExecuteCis();
-    auto &arr_2d = cis.overlap_community_vec_;
+    auto arr_2d = cis.ExecuteCis();
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
 
     cout << "idx result:" << arr_2d << endl;
