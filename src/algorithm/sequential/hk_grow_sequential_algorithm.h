@@ -66,7 +66,7 @@ namespace yche {
 
         auto SweepCut(SpareseVec &x_dict) const;
 
-        auto HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict) const;
+        auto HyperCluster(const vector<size_t> &seed_set) const;
 
         void MergeCommToGlobal(vector<size_t> &result_community);
     };

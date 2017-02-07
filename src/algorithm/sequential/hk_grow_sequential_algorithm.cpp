@@ -147,8 +147,9 @@ namespace yche {
         return make_tuple(status, cluster);
     }
 
-    auto HKGrow::HyperCluster(const vector<size_t> &seed_set, SpareseVec &x_dict) const {
+    auto HKGrow::HyperCluster(const vector<size_t> &seed_set) const {
         auto seed_dict = SpareseVec();
+        auto x_dict = SpareseVec();
         for (auto &seed:seed_set) { seed_dict.emplace(seed, 1.0 / seed_set.size()); }
 
         auto seed_iter = max_element(begin(seed_set), end(seed_set), [&](auto &&left, auto &&right) {
@@ -205,14 +206,15 @@ namespace yche {
     }
 
     HKGrow::CommunityVec HKGrow::ExecuteHRGRow() {
-        auto x_dict = SpareseVec();
-        auto seeds = vector<size_t>();
-        seeds.reserve(num_vertices(*graph_ptr_));
+        auto seeds_vec = vector<vector<size_t>>();
+        seeds_vec.reserve(num_vertices(*graph_ptr_));
         auto vp = vertices(*graph_ptr_);
-        transform(vp.first, vp.second, back_inserter(seeds), [](auto &&val) { return val; });
+        transform(vp.first, vp.second, back_inserter(seeds_vec), [](size_t val) { return vector<size_t>(1, val); });
 
-        auto stats_cluster = HyperCluster(seeds, x_dict);
-        MergeCommToGlobal(std::get<1>(stats_cluster));
+        for (auto &seeds:seeds_vec) {
+            auto stats_cluster = HyperCluster(seeds);
+            MergeCommToGlobal(std::get<1>(stats_cluster));
+        }
         return overlap_community_vec_;
     }
 }
