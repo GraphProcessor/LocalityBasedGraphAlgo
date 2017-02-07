@@ -115,8 +115,7 @@ namespace yche {
                                    property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                    property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
-        void MutateStates(MutationType mutation_type, vector<Entity> to_check_list,
-                          Community &community, EntityDict &expand_entity_dict,
+        void MutateStates(MutationType mutation_type, Community &community, EntityDict &expand_entity_dict,
                           EntityDict &shrink_entity_dict, auto &&degree_cmp_obj, bool &change_flag,
                           property_map<Graph, vertex_index_t>::type &vertex_index_map,
                           property_map<Graph, edge_weight_t>::type &edge_weight_map) const;

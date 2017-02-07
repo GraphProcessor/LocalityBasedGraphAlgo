@@ -139,11 +139,11 @@ namespace yche {
         }
     }
 
-    void Cis::MutateStates(MutationType mutation_type, vector<Entity> to_check_list,
-                           Community &community, EntityDict &expand_entity_dict,
+    void Cis::MutateStates(MutationType mutation_type, Community &community, EntityDict &expand_entity_dict,
                            EntityDict &shrink_entity_dict, auto &&degree_cmp_obj, bool &change_flag,
                            property_map<Graph, vertex_index_t>::type &vertex_index_map,
                            property_map<Graph, edge_weight_t>::type &edge_weight_map) const {
+        auto to_check_list = vector<Entity>();
         for (auto &neighbor_pair:shrink_entity_dict) { to_check_list.emplace_back(neighbor_pair.second); }
         sort(to_check_list.begin(), to_check_list.end(), degree_cmp_obj);
         for (auto &check_member:to_check_list) {
@@ -240,10 +240,9 @@ namespace yche {
 
         for (auto is_change = true; is_change;) {
             is_change = false;
-            vector<Entity> to_check_list;
-            MutateStates(MutationType::add_neighbor, to_check_list, community, member_dict, neighbor_dict,
+            MutateStates(MutationType::add_neighbor, community, member_dict, neighbor_dict,
                          degree_cmp_obj, is_change, vertex_index_map, edge_weight_map);
-            MutateStates(MutationType::remove_member, to_check_list, community, neighbor_dict, member_dict,
+            MutateStates(MutationType::remove_member, community, neighbor_dict, member_dict,
                          degree_cmp_obj, is_change, vertex_index_map, edge_weight_map);
             community = SplitAndChoose(community.member_indices_);
 
