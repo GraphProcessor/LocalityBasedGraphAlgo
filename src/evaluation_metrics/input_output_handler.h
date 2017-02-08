@@ -42,9 +42,7 @@ namespace yche {
                 string_stream >> first_vertex_name >> second_vertex_name;
                 edges_vec.emplace_back(first_vertex_name, second_vertex_name);
             }
-
         }
-
     }
 
     template<typename VertexIndexType, typename VertexType>

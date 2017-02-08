@@ -3,7 +3,6 @@
 //
 
 #include "algorithm/sequential/cis_sequential_algorithm.h"
-
 #include "util/pretty_print.h"
 #include "util/graph_io_helper.h"
 #include "util/basic_io_helper.h"
@@ -14,8 +13,7 @@ using Vertex=Cis::Vertex;
 using Graph=Cis::Graph;
 using namespace std;
 
-unique_ptr<Graph> ConstructGraph(unordered_map<int, Vertex> &vertex_dict,
-                                 unordered_map<int, int> &name_dict, vector<Edge> &edges_vec) {
+unique_ptr<Graph> ConstructGraph(map<int, Vertex> &vertex_dict, map<int, int> &name_dict, vector<Edge> &edges_vec) {
     auto graph_ptr = make_unique<Graph>();
     auto edge_weight_map = boost::get(boost::edge_weight, *graph_ptr);
     for (auto &my_edge : edges_vec) {
@@ -44,8 +42,8 @@ unique_ptr<Graph> ConstructGraph(unordered_map<int, Vertex> &vertex_dict,
 int main(int argc, char *argv[]) {
     auto edges_vec = yche::ReadWeightedEdgeList(argv[1]);
 
-    auto vertex_dict = unordered_map<int, Vertex>();
-    auto name_dict = unordered_map<int, int>();
+    auto vertex_dict = map<int, Vertex>();
+    auto name_dict = map<int, int>();
     auto cis = Cis(ConstructGraph(vertex_dict, name_dict, edges_vec), 0);
 
     auto arr_2d = cis.ExecuteCis();

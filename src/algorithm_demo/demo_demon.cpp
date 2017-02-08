@@ -7,10 +7,10 @@
 #include "util/basic_io_helper.h"
 #include "util/pretty_print.h"
 
-using namespace std;
 using yche::Demon;
 using Graph=Demon::Graph;
 using Vertex=Demon::Vertex;
+using namespace std;
 
 unique_ptr<Graph> ConstructGraph(map<int, Vertex> &name_vertex_map, map<int, int> &index_name_map,
                                  vector<pair<int, int>> &edges_vec) {
