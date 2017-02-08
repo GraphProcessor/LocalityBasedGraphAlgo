@@ -1,12 +1,17 @@
 import networkx as nx
 import re
+from metrics.link_belong_modularity import *
 
 
 def get_graph_info(file_path):
+    def extract_first_two(collection):
+        return [collection[0], collection[1]]
+
     with open(file_path) as ifs:
         lines = map(lambda ele: ele.strip(), ifs.readlines())
         lines = filter(lambda ele: not ele.startswith('#') and re.match('.*[0-9]+.*[0-9]+', ele), lines)
-        pair_list = map(lambda ele: map(lambda ele2: ele2.strip(), ele.split()), lines)
+
+        pair_list = map(lambda ele: extract_first_two(map(lambda ele2: ele2.strip(), ele.split())), lines)
         return nx.Graph(pair_list)
 
 
@@ -36,3 +41,4 @@ if __name__ == '__main__':
     print 'num nodes:', graph.number_of_nodes(), 'num edges:', graph.number_of_edges()
     comm_size, comm_list = get_community_result('../src/cmake-build-debug/algorithm_demo/demon_fb.out')
     print 'comm size:', comm_size, 'comm size:', len(comm_list)
+    print cal_modularity(graph,comm_list)
