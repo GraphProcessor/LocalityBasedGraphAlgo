@@ -5,7 +5,7 @@ from metrics.link_belong_modularity import *
 
 def get_graph_info(file_path):
     def extract_first_two(collection):
-        return [collection[0], collection[1]]
+        return [int(collection[0]), int(collection[1])]
 
     with open(file_path) as ifs:
         lines = map(lambda ele: ele.strip(), ifs.readlines())
@@ -41,4 +41,4 @@ if __name__ == '__main__':
     print 'num nodes:', graph.number_of_nodes(), 'num edges:', graph.number_of_edges()
     comm_size, comm_list = get_community_result('../src/cmake-build-debug/algorithm_demo/demon_fb.out')
     print 'comm size:', comm_size, 'comm size:', len(comm_list)
-    print cal_modularity(graph,comm_list)
+    print cal_modularity(graph, comm_list)

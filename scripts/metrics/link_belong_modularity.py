@@ -62,7 +62,6 @@ class LinkBelongModularity:
 
         init_belong_weight_dict()
         init_degree_dicts()
-        print self.in_degree_dict
 
     def calculate_modularity(self):
         modularity_val = 0
@@ -72,15 +71,14 @@ class LinkBelongModularity:
             comm_size = len(comm)
             f_val_matrix = np.ndarray(shape=(comm_size, comm_size), dtype=float)
             f_val_matrix.fill(0)
-            f_sum_in_vec = np.ndarray(shape=(1, comm_size), dtype=float)
-            f_sum_out_vec = np.ndarray(shape=(1, comm_size), dtype=float)
-            in_deg_vec = np.ndarray(shape=(1, comm_size), dtype=float)
-            out_deg_vec = np.ndarray(shape=(1, comm_size), dtype=float)
-            map(lambda ele: ele.fill(0), [f_sum_in_vec, f_sum_out_vec, in_deg_vec, out_deg_vec])
+            f_sum_in_vec = np.zeros(comm_size, dtype=float)
+            f_sum_out_vec = np.zeros(comm_size, dtype=float)
+            in_deg_vec = np.zeros(comm_size, dtype=float)
+            out_deg_vec = np.zeros(comm_size, dtype=float)
 
             # calculate f_val_matrix, f_sum_in, f_sum_out
             for i in xrange(comm_size):
-                src_mem = type(comm[i])
+                src_mem = comm[i]
                 in_deg_vec[i] = self.in_degree_dict[src_mem]
                 out_deg_vec[i] = self.out_degree_dict[src_mem]
                 for j in xrange(comm_size):
