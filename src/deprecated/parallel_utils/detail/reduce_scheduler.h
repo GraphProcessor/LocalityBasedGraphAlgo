@@ -45,8 +45,8 @@ namespace yche {
         size_t idle_count_;
         pthread_t *thread_handles_;
 
-        vector<unique_ptr<Data>> first_phase_reduce_data_pool_vec_;
-        vector<unique_ptr<Data>> second_phase_global_reduce_data_vector;
+        vector<Data> first_phase_reduce_data_pool_vec_;
+        vector<Data> second_phase_global_reduce_data_vector;
         vector<TaskIndices<size_t>> reduce_data_indices_vec_;
         vector<bool> is_rec_mail_empty_;
 

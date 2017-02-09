@@ -1,4 +1,3 @@
-
 ##Thread Pool
 - [Thread Poll Intro](detail/ThreadPoolIntro.md)
 

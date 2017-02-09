@@ -69,23 +69,21 @@ namespace yche {
     template<typename AlgorithmType>
     void DataFlower<AlgorithmType>::ParallelExecute() {
         using namespace std::chrono;
-        time_point<high_resolution_clock> start, end;
-        start = high_resolution_clock::now();
+        auto start = high_resolution_clock::now();
         InitTasks();
-        end = high_resolution_clock::now();
+        auto end = high_resolution_clock::now();
         auto elapsed = duration_cast<milliseconds>(end - start).count();
         cout << "Task Init Cost :" << elapsed << '\n' << "Thread_count:" << thread_count_ << endl;
 
-        for (auto thread_id = 0; thread_id < thread_count_; thread_id++) {
-            thread_list_.emplace_back(RingCommTaskRequest, thread_id);
-        }
+        start = high_resolution_clock::now();
+        for (auto id = 0; id < thread_count_; id++) { thread_list_.emplace_back(RingCommTaskRequest, id); }
+        for (auto &thread_ref: thread_list_) { thread_ref.join(); }
+        end = high_resolution_clock::now();
+        elapsed = duration_cast<milliseconds>(end - start).count();
+        cout << "Parallel Execution Cost :" << elapsed << '\n' << "Thread_count:" << thread_count_ << endl;
 
-        for (auto &thread_ref: thread_list_) {
-            thread_ref.join();
-        }
-
+        start = high_resolution_clock::now();
         DoLeftMerging();
-
         end = high_resolution_clock::now();
         elapsed = duration_cast<milliseconds>(end - start).count();
         cout << "Whole Elapsed Time " << elapsed << endl;
@@ -93,25 +91,16 @@ namespace yche {
 
     template<typename AlgorithmType>
     void DataFlower<AlgorithmType>::RingCommTaskRequest(int thread_id) {
-        struct timespec begin, end;
-        double elapsed;
-
-        int thread_index = thread_id;
-        if (thread_index == 0) {
-            clock_gettime(CLOCK_MONOTONIC, &begin);
-        }
-        auto dst_index = (thread_index + 1) % thread_count_;
-        auto src_index = (thread_index - 1 + thread_count_) % thread_count_;
-        auto &local_computation_range_pair = local_computation_range_index_vec_[thread_index];
-        auto &local_reduce_queue = reduce_task_vectors_[thread_index];
+        auto dst_index = (thread_id + 1) % thread_count_;
+        auto src_index = (thread_id - 1 + thread_count_) % thread_count_;
+        auto &range_pair = local_computation_range_index_vec_[thread_id];
+        auto &local_reduce_queue = reduce_task_vectors_[thread_id];
 
         while (!is_end_of_local_computation) {
-            auto local_computation_task_size =
-                    local_computation_range_pair.second - local_computation_range_pair.first + 1;
-            if (local_computation_task_size == 0) {
+            auto task_size = range_pair.second - range_pair.first + 1;
+            if (task_size == 0) {
                 if (idle_count_ == thread_count_ - 1) {
                     is_end_of_local_computation = true;
-                    cout << "Thread Finish!!!  " << thread_index << endl;
                     break;
                 } else {
                     pthread_mutex_lock(&counter_mutex_lock_);
@@ -130,7 +119,7 @@ namespace yche {
                             local_reduce_queue.erase(local_reduce_queue.end() - 1);
                         }
                         if (is_end_of_local_computation) {
-                            cout << "Finish Local Computation" << thread_index << endl;
+                            cout << "Finish Local Computation" << thread_id << endl;
                             break;
                         }
                     }
@@ -139,39 +128,26 @@ namespace yche {
                     pthread_mutex_unlock(&counter_mutex_lock_);
                 }
             } else {
-                if (local_computation_task_size > 1) {
+                if (task_size > 1) {
                     //Check Flag
-                    auto &neighbor_computation_range_pair = local_computation_range_index_vec_[src_index];
-                    if (is_rec_mail_empty_[thread_index] == false) {
+                    auto &nei_range_pair = local_computation_range_index_vec_[src_index];
+                    if (is_rec_mail_empty_[thread_id] == false) {
                         //update neighbor computation range pair
-                        neighbor_computation_range_pair.second = local_computation_range_pair.second;
-                        neighbor_computation_range_pair.first =
-                                neighbor_computation_range_pair.second - local_computation_task_size / 2 + 1;
-                        local_computation_range_pair.second = neighbor_computation_range_pair.first - 1;
+                        nei_range_pair.second = range_pair.second;
+                        nei_range_pair.first = nei_range_pair.second - task_size / 2 + 1;
+                        range_pair.second = nei_range_pair.first - 1;
 
-                        is_rec_mail_empty_[thread_index] = true;
+                        is_rec_mail_empty_[thread_id] = true;
                     }
                 }
                 //Do Local Computation
-                auto result = algorithm_ptr_->LocalComputation(
-                        std::move((*global_computation_task_vec_ptr_)[local_computation_range_pair.first]));
-                local_computation_range_pair.first++;
+                auto result = algorithm_ptr_->LocalComputation((*global_computation_task_vec_ptr_)[range_pair.first]);
+                range_pair.first++;
 
                 //Directly Put into Reduce Task Vector
-                local_reduce_queue.push_back(std::move(algorithm_ptr_->WrapMergeDataToReduceData(result)));
+                local_reduce_queue.push_back(algorithm_ptr_->WrapMergeDataToReduceData(result));
             }
         }
-
-        //Barrier
-        pthread_barrier_wait(&timestamp_barrier);
-
-        if (thread_index == 0) {
-            clock_gettime(CLOCK_MONOTONIC, &end);
-            elapsed = end.tv_sec - begin.tv_sec;
-            elapsed += (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-            cout << "Elapsed Time In Parallel Computation:" << elapsed << endl;
-        }
-
     }
 
     template<typename AlgorithmType>
