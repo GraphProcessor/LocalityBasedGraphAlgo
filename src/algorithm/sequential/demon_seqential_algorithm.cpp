@@ -170,25 +170,20 @@ namespace yche {
     void Demon::MergeToGlobal(CommunityVec &result) {
         if (overlap_community_vec_.size() == 0) {
             for (auto &community:result) {
-                if (community.size() > min_comm_size_) {
-                    overlap_community_vec_.emplace_back(std::move(community));
-                }
+                if (community.size() > min_comm_size_) { overlap_community_vec_.emplace_back(std::move(community)); }
             }
         } else {
             for (auto &new_community:result) {
                 auto first_access_flag = false;
                 for (auto &old_community:overlap_community_vec_) {
-                    auto cover_rate_result = GetIntersectRatio(new_community, old_community);
-                    if (cover_rate_result > epsilon_) {
+                    if (GetIntersectRatio(new_community, old_community) > epsilon_) {
                         old_community = GetUnion(new_community, old_community);
                         break;
                     } else if (new_community.size() > min_comm_size_ && !first_access_flag) {
                         first_access_flag = true;
                     }
                 }
-                if (first_access_flag) {
-                    overlap_community_vec_.emplace_back(std::move(new_community));
-                }
+                if (first_access_flag) { overlap_community_vec_.emplace_back(std::move(new_community)); }
             }
         }
     }
