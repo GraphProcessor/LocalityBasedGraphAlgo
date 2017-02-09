@@ -14,11 +14,9 @@ int main() {
     for (auto j = 0; j < 3000; j++) {
         cout << "Round:" << j << endl;
         for (int i = 0; i < 5000; ++i) {
-            std::function<int(void)> task_function = [i]() {
+            pool.AddTask([i]() {
                 return i * i;
-
-            };
-            pool.AddTask(task_function);
+            });
         }
         cout << "Finish Add" << endl;
         pool.WaitAll();

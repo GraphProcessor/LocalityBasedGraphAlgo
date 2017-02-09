@@ -29,7 +29,6 @@ namespace yche {
         int idle_count_;
         pthread_t *thread_handles;
         pthread_mutex_t counter_mutex_lock_;
-        pthread_barrier_t timestamp_barrier;
 
         vector<bool> is_rec_mail_empty_;
         bool is_end_of_local_computation;
@@ -50,7 +49,6 @@ namespace yche {
             thread_handles = new pthread_t[thread_count_];
 
             pthread_mutex_init(&counter_mutex_lock_, NULL);
-            pthread_barrier_init(&timestamp_barrier, NULL, thread_count);
 
             is_rec_mail_empty_.resize(thread_count_, true);
             is_end_of_local_computation = false;
@@ -61,7 +59,6 @@ namespace yche {
 
         virtual ~DataFlower() {
             pthread_mutex_destroy(&counter_mutex_lock_);
-            pthread_barrier_destroy(&timestamp_barrier);
             delete[]thread_handles;
         }
     };
@@ -86,7 +83,7 @@ namespace yche {
         DoLeftMerging();
         end = high_resolution_clock::now();
         elapsed = duration_cast<milliseconds>(end - start).count();
-        cout << "Whole Elapsed Time " << elapsed << endl;
+        cout << "Left Merging Cost: " << elapsed << endl;
     }
 
     template<typename AlgorithmType>

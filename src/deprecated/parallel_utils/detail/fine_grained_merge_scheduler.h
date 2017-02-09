@@ -25,7 +25,7 @@ namespace yche {
     class BSPer {
     public:
         BSPer(int thread_count, vector<Container2D> &reduce_data_ptr_vector,
-            Predicate pair_computation_func, TrueCallback success_action_func, FalseCallback fail_action_func)
+              Predicate pair_computation_func, TrueCallback success_action_func, FalseCallback fail_action_func)
                 : thread_count_(thread_count), thread_pool_(thread_count),
                   reduce_data_ptr_vector_(reduce_data_ptr_vector), predicate_(pair_computation_func),
                   true_callback_(success_action_func), false_callback_(fail_action_func) {
@@ -37,7 +37,7 @@ namespace yche {
                 ReduceComputation();
                 reduce_data_ptr_vector_.erase(reduce_data_ptr_vector_.end() - 1);
             }
-            return std::move(reduce_data_ptr_vector_[0]);
+            return reduce_data_ptr_vector_[0];
         }
 
         virtual  ~BSPer() {
