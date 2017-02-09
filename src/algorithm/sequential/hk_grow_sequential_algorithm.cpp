@@ -144,6 +144,8 @@ namespace yche {
         status.conductance_ = min_cond;
         status.cut_ = cut_vec[min_cond_idx];
         status.volume_ = vol_vec[min_cond_idx];
+
+        sort(begin(cluster), end(cluster));
         return make_tuple(status, cluster);
     }
 
@@ -192,16 +194,13 @@ namespace yche {
         } else {
             auto is_insert = true;
             for (auto &community:overlap_community_vec_) {
-                auto cover_rate = GetIntersectRatio(community, result_community);
-                if (cover_rate > 1 - DOUBLE_ACCURACY) {
+                if (GetIntersectRatio(community, result_community) > 1 - DOUBLE_ACCURACY) {
                     community = GetUnion(community, result_community);
                     is_insert = false;
                     break;
                 }
             }
-            if (is_insert) {
-                overlap_community_vec_.emplace_back(std::move(result_community));
-            }
+            if (is_insert) { overlap_community_vec_.emplace_back(std::move(result_community)); }
         }
     }
 
