@@ -7,8 +7,8 @@
 
 #include <thread>
 
-#include "parallel_utils/parallel_configuration.h"
-#include "parallel_utils/detail/reduce_scheduler.h"
+#include "deprecated/parallel_utils/parallel_configuration.h"
+#include "reduce_scheduler.h"
 
 namespace yche {
     using namespace std;

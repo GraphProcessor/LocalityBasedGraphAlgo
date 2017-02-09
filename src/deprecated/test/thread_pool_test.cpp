@@ -2,7 +2,7 @@
 // Created by cheyulin on 8/8/16.
 //
 #include <thread>
-#include "parallel_utils/detail/thread_pool_base.h"
+#include "deprecated/parallel_utils/detail/thread_pool_base.h"
 #include <iostream>
 
 using std::cout;

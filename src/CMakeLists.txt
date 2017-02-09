@@ -13,3 +13,4 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(".")
 
 add_subdirectory(algorithm_demo)
+add_subdirectory(deprecated)

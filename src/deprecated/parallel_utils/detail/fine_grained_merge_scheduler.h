@@ -14,7 +14,7 @@
 
 #include <boost/range.hpp>
 
-#include "parallel_utils/parallel_configuration.h"
+#include "deprecated/parallel_utils/parallel_configuration.h"
 #include "thread_pool_breakable.h"
 
 using namespace std;

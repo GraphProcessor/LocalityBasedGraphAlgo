@@ -5,6 +5,8 @@
 #ifndef CODES_YCHE_REDUCER_H
 #define CODES_YCHE_REDUCER_H
 
+#include "semaphore.h"
+
 #include <thread>
 
 #include <chrono>
@@ -13,7 +15,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "parallel_utils/parallel_configuration.h"
+#include "deprecated/parallel_utils/parallel_configuration.h"
 
 namespace yche {
     using namespace std;
@@ -43,7 +45,6 @@ namespace yche {
         size_t idle_count_;
         pthread_t *thread_handles_;
 
-        using size_t = size_t;
         vector<unique_ptr<Data>> first_phase_reduce_data_pool_vec_;
         vector<unique_ptr<Data>> second_phase_global_reduce_data_vector;
         vector<TaskIndices<size_t>> reduce_data_indices_vec_;
@@ -81,13 +82,9 @@ namespace yche {
             data_count_ = 0;
 
             sem_mail_boxes_.resize(thread_count_);
-            for (auto i = 0; i < thread_count_; i++) {
-                sem_init(&sem_mail_boxes_[i], 0, 0);
-            }
+            for (auto i = 0; i < thread_count_; i++) { sem_init(&sem_mail_boxes_[i], 0, 0); }
             check_indices_mutex_lock_vector_.resize(thread_count_);
-            for (auto i = 0; i < thread_count_; i++) {
-                pthread_mutex_init(&check_indices_mutex_lock_vector_[i], NULL);
-            }
+            for (auto i = 0; i < thread_count_; i++) { pthread_mutex_init(&check_indices_mutex_lock_vector_[i], NULL); }
 
             pthread_barrier_init(&timestamp_barrier_, NULL, thread_count_);
             pthread_mutex_init(&task_taking_mutex_, NULL);

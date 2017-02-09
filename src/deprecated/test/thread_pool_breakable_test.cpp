@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "parallel_utils/detail/thread_pool_breakable.h"
+#include "deprecated/parallel_utils/detail/thread_pool_breakable.h"
 
 using namespace yche;
 using namespace std;
