@@ -39,6 +39,7 @@ def print_comm(comm_list):
 if __name__ == '__main__':
     graph = get_graph_info('../datasets/social_network/facebook_combined.txt')
     print 'num nodes:', graph.number_of_nodes(), 'num edges:', graph.number_of_edges()
-    comm_size, comm_list = get_community_result('../src/cmake-build-debug/algorithm_demo/demon_fb.out')
-    print 'comm size:', comm_size, 'comm size:', len(comm_list)
+    comm_num, comm_list = get_community_result('../src/cmake-build-debug/algorithm_demo/demon_fb.out')
+    avg_comm_size = sum(map(lambda ele: len(ele), comm_list)) / comm_num
+    print 'comm num:', comm_num, 'avg comm size:', avg_comm_size
     print cal_modularity(graph, comm_list)

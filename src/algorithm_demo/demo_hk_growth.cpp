@@ -2,6 +2,8 @@
 // Created by cheyulin on 1/5/17.
 //
 
+#include <chrono>
+
 #include "algorithm/sequential/hk_grow_sequential_algorithm.h"
 #include "util/graph_io_helper.h"
 #include "util/basic_io_helper.h"
@@ -45,7 +47,13 @@ int main(int argc, char *argv[]) {
     auto name_dict = map<Vertex, int>();
 
     auto hkgrow_algo = HKGrow(ConstructGraph(vertex_dict, name_dict, edges_vec), 15, 0.0001);
+
+    using namespace std::chrono;
+    auto start = high_resolution_clock::now();
     auto arr_2d = std::move(hkgrow_algo.ExecuteHRGRow());
+    auto end = high_resolution_clock::now();
+    cout << "whole execution time:" << duration_cast<milliseconds>(end - start).count() << " ms" << endl;
+
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
 
     cout << "idx result:" << arr_2d << endl;

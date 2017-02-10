@@ -2,6 +2,8 @@
 // Created by cheyulin on 10/5/16.
 //
 
+#include <chrono>
+
 #include "algorithm/sequential/cis_sequential_algorithm.h"
 #include "util/pretty_print.h"
 #include "util/graph_io_helper.h"
@@ -46,7 +48,12 @@ int main(int argc, char *argv[]) {
     auto name_dict = map<int, int>();
     auto cis = Cis(ConstructGraph(vertex_dict, name_dict, edges_vec), 0);
 
+    using namespace std::chrono;
+    auto start = high_resolution_clock::now();
     auto arr_2d = cis.ExecuteCis();
+    auto end = high_resolution_clock::now();
+    cout << "whole execution time:" << duration_cast<milliseconds>(end - start).count() << " ms" << endl;
+
     auto name_arr_2d = yche::Map2DArrWithDict(arr_2d, name_dict);
 
     cout << "idx result:" << arr_2d << endl;
