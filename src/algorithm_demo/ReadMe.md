@@ -1,3 +1,4 @@
+#Algorithm Executable
 ##Arguments Sample
 
 - one argument specify the path of demo_graph, in edge list with weight representation
