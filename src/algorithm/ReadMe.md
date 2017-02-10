@@ -1,7 +1,8 @@
 #Algorithm Descriptions
-##OVerlapping Community Detection Algorithms
+##Overlapping Community Detection Algorithms
 - Cis : Connected Iterative Scan
 - Demon: Democratically Estimate of Modular Organization of Network
+- HRGrow: Heat-Kernel Graph Diffusion
 
 ##Sequential Implementation
 - CIs: [cis_sequential_algorithm.h](sequential/cis_sequential_algorithm.h), [cis_sequential_algorithm.cpp](sequential/cis_sequential_algorithm.cpp)

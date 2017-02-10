@@ -36,8 +36,7 @@ comm size:2
 ##Algorithm Implementation Codes
 - see [../algorithm](../algorithm)
 
-
 ##Entry Source Codes
 - [demo_cis.cpp](demo_cis.cpp)
 - [demo_demon.cpp](demo_demon.cpp)
-
+- [demo_hk_growth.cpp](demo_hk_growth.cpp)
