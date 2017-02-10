@@ -6,6 +6,20 @@
 /home/cheyulin/GitRepos/LocalityBasedGraphAlgo/demo_files/demo_graph.csv 
 ```
 
+##Input File Sample
+
+```zsh
+#src_name dst_name edge_weight
+0 1 3
+1 2 1
+2 3 4
+3 4 4
+0 5 3
+2 7 4
+4 7 4
+4 8 1
+```
+
 ##Output Sample
 
 - cis algorithm
@@ -36,7 +50,7 @@ comm size:2
 ##Algorithm Implementation Codes
 - see [../algorithm](../algorithm)
 
-##Entry Source Codes
+##Main Entry Source Codes
 - [demo_cis.cpp](demo_cis.cpp)
 - [demo_demon.cpp](demo_demon.cpp)
 - [demo_hk_growth.cpp](demo_hk_growth.cpp)

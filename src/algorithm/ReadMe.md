@@ -9,5 +9,3 @@
 - Demon: [demon_sequential_algorithm.h](sequential/demon_sequential_algorithm.h), [demon_seqential_algorithm.cpp](sequential/demon_seqential_algorithm.cpp)
 - HRGrow: [hk_grow_sequential_algorithm.h](sequential/hk_grow_sequential_algorithm.h), [hk_grow_sequential_algorithm.cpp](sequential/hk_grow_sequential_algorithm.cpp)
 
-##Deprecated Document
-- [deprecated document](sequential/deprecated_doc)
