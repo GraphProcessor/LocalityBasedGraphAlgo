@@ -1,4 +1,7 @@
 #Algorithm Descriptions
+##Graph Representation
+Graph implementation are header-only files in boost graph module.
+
 ##Overlapping Community Detection Algorithms
 - Cis : Connected Iterative Scan
 - Demon: Democratically Estimate of Modular Organization of Network

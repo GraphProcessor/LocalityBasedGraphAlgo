@@ -1,4 +1,15 @@
 #Algorithm Executable
+##Algorithm Implementation Codes
+- see [../algorithm](../algorithm)
+
+##Main Entry Source Codes
+- [demo_cis.cpp](demo_cis.cpp)
+- [demo_demon.cpp](demo_demon.cpp)
+- [demo_hk_growth.cpp](demo_hk_growth.cpp)
+
+##Dependency
+- boost regex module, requiring to link the executable to related run-time library
+
 ##Arguments Sample
 
 - one argument specify the path of demo_graph, in edge list with weight representation
@@ -47,11 +58,3 @@ idx result:[[0, 1, 5], [1, 2, 3, 4, 6, 7]]
 name result:[[0, 1, 5], [1, 2, 3, 4, 7, 8]]
 comm size:2
 ```
-
-##Algorithm Implementation Codes
-- see [../algorithm](../algorithm)
-
-##Main Entry Source Codes
-- [demo_cis.cpp](demo_cis.cpp)
-- [demo_demon.cpp](demo_demon.cpp)
-- [demo_hk_growth.cpp](demo_hk_growth.cpp)
