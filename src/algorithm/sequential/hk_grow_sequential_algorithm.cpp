@@ -99,8 +99,7 @@ namespace yche {
     auto HKGrow::SweepCut(SpareseVec &x_dict) const {
         auto cluster = vector<size_t>();
         for (auto &ele:x_dict) { ele.second *= (1.0 / max(out_degree(ele.first, *graph_ptr_), 1ul)); }
-        auto pr_pairs = vector<pair<size_t,
-                double >>(x_dict.begin(), x_dict.end());
+        auto pr_pairs = vector<pair<size_t, double >>(x_dict.begin(), x_dict.end());
         sort(pr_pairs.begin(), pr_pairs.end(),
              [](auto &&left, auto &&right) { return left.second > right.second; });
 
@@ -122,9 +121,7 @@ namespace yche {
 
             for (auto vp = adjacent_vertices(i, *graph_ptr_); vp.first != vp.second; ++vp.first) {
                 auto neighbor_v = *vp.first;
-                if (rank_map.count(neighbor_v) > 0 && rank_map[neighbor_v] < rank_map[v]) {
-                    change -= 2;
-                }
+                if (rank_map.count(neighbor_v) > 0 && rank_map[neighbor_v] < rank_map[v]) { change -= 2; }
             }
 
             cut_of_set += change;
