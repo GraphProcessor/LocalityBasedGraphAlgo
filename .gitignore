@@ -5,6 +5,9 @@ cmake-build-debug
 #datasets
 datasets
 
+#build
+build
+
 # Compiled Object files
 *.slo
 *.lo
