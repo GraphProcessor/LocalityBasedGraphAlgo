@@ -24,7 +24,7 @@ cmake | generate makefile | [cmake-tutorial](https://cmake.org/cmake-tutorial/)
 - boost graph library, only requiring including headers, which use template-meta-programming. Adjacency list 
 and compressed sparse row graph concept are used in this project.
 
-configure as following in [CMakeLists.txt](../src/CMakeLists.txt) to give gcc 
+configure as following in [CMakeLists.txt](../../src/CMakeLists.txt) to give gcc 
 additional-search-path for header-files.
 
 ```
