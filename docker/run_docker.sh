@@ -1,0 +1,1 @@
+sudo docker run  -v /home/cheyulin/GitRepos/LocalityBasedGraphAlgo/:/opt -it yche/yche-dev-env zsh

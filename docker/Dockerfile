@@ -1,5 +1,5 @@
-# use the ubuntu base image
-FROM ubuntu:14.04
+# use the ubuntu base image, see https://hub.docker.com/_/ubuntu/
+FROM ubuntu:16.04
 
 MAINTAINER Yulin CHE yche@cse.ust.hk
 
