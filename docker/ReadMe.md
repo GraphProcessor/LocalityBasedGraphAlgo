@@ -1,5 +1,19 @@
 #Docker Guidance
+
 ##Install Docker and Start Service
+start in fedora:
+
+```zsh
+sudo systemctl status docker
+sudo systemctl start docker
+```
+
+If you want Docker to start at boot, you should also:
+
+```zsh
+sudo systemctl enable docker
+```
+
 In terminal, type `sudo docker run hello-world`.
 
 If result is as follows, then it is okay.
@@ -60,3 +74,18 @@ push, where `yche/yche-dev-env` should be replaced with your docker hub reposito
 ```zsh
 sudo docker push yche/yche-dev-env
 ```
+
+###Usage
+
+first load docker image
+
+```zsh
+python run_docker.py
+```
+
+second enter into workspace
+
+```zsh
+cd /opt/
+```
+
