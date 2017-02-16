@@ -14,6 +14,8 @@ If you want Docker to start at boot, you should also:
 sudo systemctl enable docker
 ```
 
+##Check Whether It Starts
+
 In terminal, type `sudo docker run hello-world`.
 
 If result is as follows, then it is okay.
