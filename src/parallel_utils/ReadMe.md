@@ -1,5 +1,7 @@
-#Parallel Utils
-##Static Schedule, Two Stage Execution
+# Parallel Utils
+
+## Static Schedule, Two Stage Execution
+
 1. fixed number of seeds are transformed into intermediate communities, which are going to be merged into a global one. 
 tasks are split statically. intermediate representation should be able to be iterated in community-as-an-element manner. 
 

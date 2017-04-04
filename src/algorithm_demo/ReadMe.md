@@ -1,16 +1,16 @@
-#Algorithm Executable
-##Algorithm Implementation Codes
+# Algorithm Executable
+## Algorithm Implementation Codes
 - see [../algorithm](../algorithm)
 
-##Main Entry Source Codes
+## Main Entry Source Codes
 - [demo_cis.cpp](demo_cis.cpp)
 - [demo_demon.cpp](demo_demon.cpp)
 - [demo_hk_growth.cpp](demo_hk_growth.cpp)
 
-##Dependency
+## Dependency
 - boost regex module, requiring to link the executable to related run-time library
 
-##Arguments Sample
+## Arguments Sample
 
 - one argument specify the path of demo_graph, in edge list with weight representation
 
@@ -18,7 +18,7 @@
 /home/cheyulin/GitRepos/LocalityBasedGraphAlgo/demo_files/demo_graph.csv 
 ```
 
-##Input File Sample
+## Input File Sample
 
 ```zsh
 #src_name dst_name edge_weight
@@ -32,7 +32,7 @@
 4 8 1
 ```
 
-##Output Sample
+## Output Sample
 
 - cis algorithm
 

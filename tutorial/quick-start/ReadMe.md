@@ -1,5 +1,5 @@
-#Quick Start
-##Recommended IDEs
+# Quick Start
+## Recommended IDEs
 
 Jetbrains IDEs are easy to learn and flexible to use. You can use 
 [jetbrains-toolbox](https://www.jetbrains.com/toolbox/app/?fromMenu) to help you manage the update of following 
@@ -12,7 +12,7 @@ tool | language
 [webstorm](https://www.jetbrains.com/webstorm/?fromMenu) | for javascript
 
 
-##Build Tool Chain
+## Build Tool Chain
 
 tool | functionality | links
 --- | --- | ---
@@ -20,7 +20,7 @@ gcc4.9+ | compile source codes with std=c++14 |
 make | build codes with makefile | 
 cmake | generate makefile | [cmake-tutorial](https://cmake.org/cmake-tutorial/)
 
-##Dependency
+## Dependency
 - boost graph library, only requiring including headers, which use template-meta-programming. Adjacency list 
 and compressed sparse row graph concept are used in this project.
 
@@ -35,7 +35,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 used in [../src/util/graph_io_helper.h](../src/util/graph_io_helper.h) for graph input handling.
 
-##Build Steps(On Linux), with boost-dev and build-tool-chain installed
+## Build Steps(On Linux), with boost-dev and build-tool-chain installed
 
 in root directory of this project
 

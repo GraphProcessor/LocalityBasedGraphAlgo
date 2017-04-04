@@ -1,6 +1,6 @@
-#Docker Guidance
+# Docker Guidance
 
-##Install Docker and Start Service
+## Install Docker and Start Service
 start in fedora:
 
 ```zsh
@@ -14,7 +14,7 @@ If you want Docker to start at boot, you should also:
 sudo systemctl enable docker
 ```
 
-##Check Whether It Starts
+## Check Whether It Starts
 
 In terminal, type `sudo docker run hello-world`.
 
@@ -42,7 +42,7 @@ For more examples and ideas, visit:
  https://docs.docker.com/engine/userguide/
 ```
 
-##Choice1, Simply Pull From Docker Hub
+## Choice1, Simply Pull From Docker Hub
 
 do as follows, you will get docker image from my docker hub repository
 
@@ -50,15 +50,15 @@ do as follows, you will get docker image from my docker hub repository
 sudo docker pull yche/yche-dev-env
 ```
 
-##Choice2, Build Docker Image From Scratch 
-###Build
+## Choice2, Build Docker Image From Scratch 
+### Build
 build image with script [build_img.sh](build_img.sh)
 
 ```zsh
 ./build_img.sh
 ```
 
-###Push 2 Remote Hub
+### Push 2 Remote Hub
 give docker tag, where `10d386ca7c19` should be replaced with your docker image id
 
 ```zsh
@@ -77,7 +77,7 @@ push, where `yche/yche-dev-env` should be replaced with your docker hub reposito
 sudo docker push yche/yche-dev-env
 ```
 
-##Usage of Docker Image
+## Usage of Docker Image
 
 first load docker image
 

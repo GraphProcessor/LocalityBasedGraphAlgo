@@ -1,13 +1,13 @@
-#Algorithm Descriptions
-##Graph Representation
+# Algorithm Descriptions
+## Graph Representation
 Graph implementation are header-only files in boost graph module.
 
-##Overlapping Community Detection Algorithms
+## Overlapping Community Detection Algorithms
 - Cis : Connected Iterative Scan
 - Demon: Democratically Estimate of Modular Organization of Network
 - HRGrow: Heat-Kernel Graph Diffusion
 
-##Sequential Implementation
+## Sequential Implementation
 
 Algorithm | Header | Definition
 --- | --- | ---
