@@ -41,10 +41,10 @@ namespace yche {
 
     struct Community {
         std::unordered_set<int> member_indices_;
-        double w_in_;
-        double w_out_;
+        double w_in_{0};
+        double w_out_{0};
 
-        Community() : w_in_(0), w_out_(0) {}
+        Community() = default;
 
         Community(const Community &community) = default;
 
@@ -115,10 +115,31 @@ namespace yche {
                                    property_map<Graph, vertex_index_t>::type &vertex_index_map,
                                    property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
 
+        template <class Comparator>
         void MutateStates(MutationType mutation_type, Community &community, EntityDict &expand_entity_dict,
-                          EntityDict &shrink_entity_dict, auto &&degree_cmp_obj, bool &change_flag,
+                          EntityDict &shrink_entity_dict, Comparator degree_cmp_obj, bool &change_flag,
                           property_map<Graph, vertex_index_t>::type &vertex_index_map,
-                          property_map<Graph, edge_weight_t>::type &edge_weight_map) const;
+                          property_map<Graph, edge_weight_t>::type &edge_weight_map) const{
+            auto to_check_list = vector<Entity>();
+            for (auto &neighbor_pair:shrink_entity_dict) { to_check_list.emplace_back(neighbor_pair.second); }
+            sort(to_check_list.begin(), to_check_list.end(), degree_cmp_obj);
+            for (auto &check_member:to_check_list) {
+                if (CalDensity(community) < CalDensity(community, check_member, mutation_type)) {
+                    change_flag = true;
+                    community.UpdateInfoForMutation(check_member, mutation_type);
+                    shrink_entity_dict.erase(check_member.entity_index_);
+                    auto check_vertex = vertices_[check_member.entity_index_];
+                    expand_entity_dict.emplace(check_member.entity_index_, check_member);
+                    if (mutation_type == MutationType::add_neighbor) {
+                        UpdateForAddNeighbor(check_vertex, community, expand_entity_dict, shrink_entity_dict,
+                                             vertex_index_map, edge_weight_map);
+                    } else {
+                        UpdateForRemoveMember(check_vertex, community, shrink_entity_dict, expand_entity_dict,
+                                              vertex_index_map, edge_weight_map);
+                    }
+                }
+            }
+        };
 
         Community FindConnectedComponent(EntityIdxSet &member_set, EntityIdxSet &mark_set, int first_mem_idx,
                                          property_map<Graph, vertex_index_t>::type &vertex_index_map,
