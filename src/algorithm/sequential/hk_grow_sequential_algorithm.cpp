@@ -90,7 +90,7 @@ namespace yche {
                 }
             }
             push_num += deg_of_i;
-            if (task_queue.size() == 0) { return push_num; }
+            if (task_queue.empty()) { return push_num; }
         }
 #undef rentry
         return push_num;
@@ -186,7 +186,7 @@ namespace yche {
     }
 
     void HKGrow::MergeCommToGlobal(vector<size_t> &result_community) {
-        if (overlap_community_vec_.size() == 0) {
+        if (overlap_community_vec_.empty()) {
             overlap_community_vec_.emplace_back(std::move(result_community));
         } else {
             auto is_insert = true;

@@ -29,7 +29,7 @@ namespace yche {
         double w_in_;
         double w_out_;
 
-        Entity(int member_index) : entity_index_(member_index), w_in_(0), w_out_(0) {}
+        explicit Entity(int member_index) : entity_index_(member_index), w_in_(0), w_out_(0) {}
     };
 
     using EntityDict = std::unordered_map<int, Entity>;
@@ -48,10 +48,10 @@ namespace yche {
 
         Community(const Community &community) = default;
 
-        Community(Community &&community) : member_indices_(std::move(community.member_indices_)),
-                                           w_in_(community.w_in_), w_out_(community.w_out_) {}
+        Community(Community &&community) noexcept : member_indices_(std::move(community.member_indices_)),
+                                                    w_in_(community.w_in_), w_out_(community.w_out_) {}
 
-        Community &operator=(Community &&community) {
+        Community &operator=(Community &&community) noexcept {
             member_indices_ = std::move(community.member_indices_);
             w_in_ = community.w_in_;
             w_out_ = community.w_out_;

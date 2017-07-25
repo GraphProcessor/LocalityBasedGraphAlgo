@@ -12,13 +12,14 @@ namespace yche {
     double Cis::CalDensity(int size, double w_in, double w_out, double lambda) {
         if (size < 1) {
             return numeric_limits<double>::min();
-        } else {
-            double partA = ((1 - lambda) * (w_in / (w_in + w_out)));
-            double partB = (lambda * ((2 * w_in) / (size * (size - 1))));
-            if (size == 1)
-                partB = lambda;
-            return partA + partB;
         }
+
+        double partA = ((1 - lambda) * (w_in / (w_in + w_out)));
+        double partB = (lambda * ((2 * w_in) / (size * (size - 1))));
+        if (size == 1)
+            partB = lambda;
+        return partA + partB;
+
     }
 
     double Cis::CalDensity(const Community &community) const {
@@ -31,10 +32,11 @@ namespace yche {
             return CalDensity(static_cast<int>(community.member_indices_.size() + 1),
                               community.w_in_ + member.w_in_, community.w_out_ + member.w_out_, lambda_);
 
-        } else {
-            return CalDensity(static_cast<int>(community.member_indices_.size() - 1),
-                              community.w_in_ - member.w_in_, community.w_out_ - member.w_out_, lambda_);
         }
+
+        return CalDensity(static_cast<int>(community.member_indices_.size() - 1),
+                          community.w_in_ - member.w_in_, community.w_out_ - member.w_out_, lambda_);
+
     }
 
     void Cis::InitializeSeeds(const EntityIdxSet &seed, Community &community,
@@ -172,7 +174,7 @@ namespace yche {
         auto frontier = queue<int>();
         frontier.emplace(first_mem_idx);
         mark_set.emplace(first_mem_idx);
-        while (frontier.size() > 0) {
+        while (!frontier.empty()) {
             auto expand_vertex_index = frontier.front();
             auto expand_vertex = vertices_[expand_vertex_index];
 
@@ -205,7 +207,7 @@ namespace yche {
         auto vertex_index_map = boost::get(vertex_index, *graph_ptr_);
         auto edge_weight_map = boost::get(edge_weight, *graph_ptr_);
 
-        while (member_set.size() > 0) {
+        while (!member_set.empty()) {
             auto first_mem_idx = *member_set.begin();
             community_vec.emplace_back(
                     FindConnectedComponent(member_set, mark_set, first_mem_idx, vertex_index_map, edge_weight_map));
@@ -217,9 +219,10 @@ namespace yche {
                  double right_density = this->CalDensity(right_comm);
                  if (left_density != right_density) {
                      return left_density > right_density;
-                 } else {
-                     return (left_comm.member_indices_).size() > (right_comm.member_indices_).size();
                  }
+
+                 return (left_comm.member_indices_).size() > (right_comm.member_indices_).size();
+
              });
         return community_vec[0];
     }
@@ -273,7 +276,7 @@ namespace yche {
     }
 
     void Cis::MergeCommToGlobal(EntityIdxVec &result_community) {
-        if (overlap_community_vec_.size() == 0) {
+        if (overlap_community_vec_.empty()) {
             overlap_community_vec_.emplace_back(std::move(result_community));
         } else {
             auto is_insert = true;
